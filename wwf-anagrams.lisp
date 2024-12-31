@@ -1,5 +1,5 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (ql:quickload '(:adopt :with-user-abort) :silent t))
+  (ql:quickload '(:adopt :with-user-abort :cl-ppcre) :silent t))
 
 (defpackage :wwf-anagrams
   (:use :cl)
@@ -157,11 +157,17 @@
                                               letter-list)))))
     letter-list))
 
-(defun run (letters)
+(defun filter-on-regex (word-list regex)
+  (if regex
+      (remove-if-not #'(lambda (x) (cl-ppcre:scan regex x)) word-list)
+      word-list))
+
+(defun run (letters regex-pattern)
   (let ((min-length +min-word-length+)
         (max-length (if (plusp *max-word-length*)
                         (min *max-word-length* (length letters))
-                        (length letters))))
+                        (length letters)))
+        (regex (and regex-pattern (cl-ppcre:create-scanner regex-pattern :case-insensitive-mode t))))
     (declare (fixnum min-length max-length))
     (flet ((my-lessp (w1 w2)
              (or (< (length w1) (length w2))
@@ -170,7 +176,8 @@
       (multiple-value-bind (cleaned-word blanks) (clean-letters letters)
         (let ((letter-list (create-letter-list cleaned-word (length blanks))))
           (let* ((all-anagrams (all-inner letter-list min-length max-length))
-                 (word-list (sort all-anagrams #'my-lessp))
+                 (filtered-anagrams (filter-on-regex all-anagrams regex))
+                 (word-list (sort filtered-anagrams #'my-lessp))
                  (prev-len 0))
             (dolist (w word-list)
               (when (/= (length w) prev-len)
@@ -196,8 +203,8 @@
   (adopt:make-interface
    :name "wwf-anagrams"
    :summary "Create anagrams from letters, using the dictionary from Words With Friends."
-   :usage "LETTERS"
-   :help "LETTERS should be a string comprised of ASCII letters. A period can be used to represent 'any letter' (a blank, in Scrabble parlance)."
+   :usage "LETTERS [REGEX]"
+   :help "LETTERS should be a string comprised of ASCII letters. A period can be used to represent 'any letter' (a blank, in Scrabble parlance). REGEX is optional and should be a case-insensitive regex pattern to filter that can be used to filter the results."
    :contents (list *option-help*)))
 
 (defun toplevel ()
@@ -206,6 +213,6 @@
     (multiple-value-bind (arguments options) (adopt:parse-options-or-exit *ui*)
       (when (gethash 'help options nil)
         (adopt:print-help-and-exit *ui*))
-      (handler-case (run (car arguments))
+      (handler-case (run (first arguments) (second arguments))
         (user-error (e) (adopt:print-error-and-exit e))))))
         
