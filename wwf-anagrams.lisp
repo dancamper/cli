@@ -204,7 +204,7 @@
    :name "wwf-anagrams"
    :summary "Create anagrams from letters, using the dictionary from Words With Friends."
    :usage "LETTERS [REGEX]"
-   :help "LETTERS should be a string comprised of ASCII letters. A period can be used to represent 'any letter' (a blank, in Scrabble parlance). REGEX is optional and should be a case-insensitive regex pattern to filter that can be used to filter the results."
+   :help "LETTERS should be a string comprised of ASCII letters. A period can be used to represent 'any letter' (a blank, in Scrabble parlance). REGEX is optional and should be a case-insensitive regex pattern that can be used to filter the results."
    :contents (list *option-help*)))
 
 (defun toplevel ()
