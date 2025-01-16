@@ -24,6 +24,7 @@
 (defparameter *colors-for-dark-terminal*  (make-colors (lambda (v) (< v 3))))
 (defparameter *colors-light-terminal* (make-colors (lambda (v) (> v 11))))
 (defvar *colors* *colors-for-dark-terminal*) ; default to dark
+(defvar *start-color-pos* 0)
 
 ;;;; Errors ------------------------------------------------------
 
@@ -41,7 +42,7 @@
 ;;; --------------------------
 
 (defun find-color (string)
-  (aref *colors* (mod (djb2 string) (length *colors*))))
+  (aref *colors* (mod (+ (djb2 string) *start-color-pos*) (length *colors*))))
 
 (defun ansi-color-start (color)
   (format nil "~C[38;5;~Dm" #\Escape color))
@@ -66,7 +67,8 @@
       (let* ((launch-info (uiop:launch-program launch-args :output :stream))
              (raw-input-stream (uiop:process-info-output launch-info))
              (input-stream (flexi-streams:make-flexi-stream raw-input-stream)))
-        (setf (flexi-streams:flexi-stream-element-type input-stream) '(unsigned-byte 8))
+        (setf (flexi-streams:flexi-stream-element-type input-stream) '(unsigned-byte 8)
+              *start-color-pos* (random (length *colors*) (make-random-state t)))
         (loop :for line = (read-line input-stream nil nil)
               :while line
               :do (multiple-value-bind (ms me rs re) (ppcre:scan scanner line)
