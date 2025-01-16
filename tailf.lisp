@@ -61,7 +61,7 @@
 
 (defun run (paths)
   (when paths
-    (let ((scanner (ppcre:create-scanner "==> (.+?) <=="))
+    (let ((scanner (ppcre:create-scanner "^==> (.+?) <==$"))
           (launch-args (append (list "tail" "-F") (if (listp paths) paths (list paths)))))
       (let* ((launch-info (uiop:launch-program launch-args :output :stream))
              (raw-input-stream (uiop:process-info-output launch-info))
