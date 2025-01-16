@@ -96,7 +96,7 @@
 
 (defparameter *option-dark-terminal*
   (adopt:make-option 'dark-terminal
-                     :help "Use font colors suitable for a dark terminal background"
+                     :help "Use font colors suitable for a dark terminal background (the default)"
                      :long "dark"
                      :short #\D
                      :reduce (constantly t)))
@@ -113,7 +113,7 @@
    :name "tailf"
    :summary "Wraps the tail command line utility, specifically when tailing multiple files. Colorize the output from each file differently."
    :usage "[OPTIONS] FILE [FILE]+"
-   :help ""
+   :help "FILE can be any file glob acceptable to the tail command line utility."
    :contents (list *option-help*
                    *option-dark-terminal*
                    *option-light-terminal*)))
