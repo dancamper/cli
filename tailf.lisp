@@ -96,17 +96,19 @@
 
 (defparameter *option-dark-terminal*
   (adopt:make-option 'dark-terminal
+                     :result-key 'color
                      :help "Use font colors suitable for a dark terminal background (the default)"
                      :long "dark"
                      :short #\D
-                     :reduce (constantly t)))
+                     :reduce (constantly 'dark)))
 
 (defparameter *option-light-terminal*
   (adopt:make-option 'light-terminal
+                     :result-key 'color
                      :help "Use font colors suitable for a light terminal background"
                      :long "light"
                      :short #\L
-                     :reduce (constantly t)))
+                     :reduce (constantly 'light)))
 
 (defparameter *ui*
   (adopt:make-interface
@@ -126,9 +128,9 @@
           (cond ((gethash 'help options)
                  (adopt:print-help-and-exit *ui*))
                 (t
-                 (cond ((gethash 'dark-terminal options)
+                 (cond ((eql (gethash 'color options) 'dark)
                         (setf *colors* *colors-for-dark-terminal*))
-                       ((gethash 'light-terminal options)
+                       ((eql (gethash 'color options) 'light)
                         (setf *colors* *colors-light-terminal*)))
                  (run arguments)))
         (user-error (e) (adopt:print-error-and-exit e))))))
