@@ -62,7 +62,7 @@
 
 (defun run (paths)
   (when paths
-    (let ((scanner (ppcre:create-scanner "^==> (.+?) <==$"))
+    (let ((scanner (ppcre:create-scanner "^==> .+? <==$"))
           (launch-args (append (list "tail" "-F") (if (listp paths) paths (list paths)))))
       (let* ((launch-info (uiop:launch-program launch-args :output :stream))
              (raw-input-stream (uiop:process-info-output launch-info))
@@ -71,10 +71,9 @@
               *start-color-pos* (random (length *colors*) (make-random-state t)))
         (loop :for line = (read-line input-stream nil nil)
               :while line
-              :do (multiple-value-bind (ms me rs re) (ppcre:scan scanner line)
-                    (declare (ignore ms me))
-                    (when (plusp (length rs))
-                      (start-colorizing (subseq line (aref rs 0) (aref re 0))))
+              :do (progn
+                    (when (ppcre:scan scanner line)
+                      (start-colorizing line))
                     (write-line line *standard-output*)))))))
 
 ;;;; User Interface ----------------------------------------------
