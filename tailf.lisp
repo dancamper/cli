@@ -12,12 +12,12 @@
 (defun rgb-code (r g b)
   (+ (* r 36) (* g 6) (* b 1) 16))
 
-(defun make-colors (excludep)
+(defun make-colors (fn-exclude-p)
   (let ((result (make-array 256 :fill-pointer 0)))
     (dotimes (r 6)
       (dotimes (g 6)
         (dotimes (b 6)
-          (unless (funcall excludep (+ r g b))
+          (unless (funcall fn-exclude-p (+ r g b))
             (vector-push-extend (rgb-code r g b) result)))))
     result))
 
@@ -35,17 +35,17 @@
 
 (defun string-prefix-p (str prefix)
   (and (<= (length prefix) (length str))
-       (string= (subseq str 0 (length prefix)) prefix)))
+       (string= str prefix :start1 0 :end1 (length prefix))))
 
 (defun string-suffix-p (str suffix)
   (and (<= (length suffix) (length str))
-       (string= (subseq str (- (length str) (length suffix))) suffix)))
+       (string= str suffix :start1 (- (length str) (length suffix)) :end1 (length str))))
 
 ;;; --------------------------
 
 (defun djb2 (string)
   ;; http://www.cse.yorku.ca/~oz/hash.html
-  (reduce (lambda (hash c) (mod (+ (* 33 hash) c) (expt 2 64)))
+  (reduce (lambda (hash c) (mod (+ (* 33 hash) c) #.(expt 2 64)))
           string
           :initial-value 5381
           :key #'char-code))
@@ -61,10 +61,8 @@
     color))
 
 (defun find-color (string)
-  (multiple-value-bind (color foundp) (gethash string *color-map* (choose-color string))
-    (unless foundp
-      (setf (gethash string *color-map*) color))
-    color))
+  (or (gethash string *color-map*)
+      (setf (gethash string *color-map*) (choose-color string))))
 
 (defun ansi-color-start (color)
   (format nil "~C[38;5;~Dm" #\Escape color))
