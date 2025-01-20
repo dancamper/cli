@@ -25,6 +25,7 @@
 (defparameter *colors-light-terminal* (make-colors (lambda (v) (> v 11))))
 (defvar *colors* *colors-for-dark-terminal*) ; default to dark
 (defvar *start-color-pos* 0)
+(defvar *color-map* (make-hash-table :test #'equalp))
 
 ;;;; Errors ------------------------------------------------------
 
@@ -51,8 +52,19 @@
 
 ;;; --------------------------
 
+(defun choose-color (string)
+  (let* ((pos (mod (+ (djb2 string) *start-color-pos*) (length *colors*)))
+         (color (aref *colors* pos)))
+    (if (zerop color)
+        (setf color (choose-color (format nil "~A:~A" string string)))
+        (setf (aref *colors* pos) 0))
+    color))
+
 (defun find-color (string)
-  (aref *colors* (mod (+ (djb2 string) *start-color-pos*) (length *colors*))))
+  (multiple-value-bind (color foundp) (gethash string *color-map* (choose-color string))
+    (unless foundp
+      (setf (gethash string *color-map*) color))
+    color))
 
 (defun ansi-color-start (color)
   (format nil "~C[38;5;~Dm" #\Escape color))
