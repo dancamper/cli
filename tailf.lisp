@@ -33,13 +33,17 @@
 
 ;;;; Functionality -----------------------------------------------
 
+(declaim (inline string-prefix-p))
 (defun string-prefix-p (str prefix)
   (and (<= (length prefix) (length str))
-       (string= str prefix :start1 0 :end1 (length prefix))))
+       (string= str prefix
+                :start1 0 :end1 (length prefix))))
 
+(declaim (inline string-suffix-p))
 (defun string-suffix-p (str suffix)
   (and (<= (length suffix) (length str))
-       (string= str suffix :start1 (- (length str) (length suffix)) :end1 (length str))))
+       (string= str suffix
+                :start1 (- (length str) (length suffix)) :end1 (length str))))
 
 ;;; --------------------------
 
@@ -56,7 +60,7 @@
   (let* ((pos (mod (+ (djb2 string) *start-color-pos*) (length *colors*)))
          (color (aref *colors* pos)))
     (if (zerop color)
-        (setf color (choose-color (format nil "~A:~A" string string)))
+        (setf color (choose-color (format nil "~A^" string)))
         (setf (aref *colors* pos) 0))
     color))
 
