@@ -51,10 +51,7 @@
     (t 1)))
 
 (defun prime-factor-product-from-word (word &optional (seed 1))
-  (let ((pfp seed))
-    (loop :for c :across word
-          :do (setf pfp (* pfp (prime-factor-from-char c))))
-    pfp))
+  (reduce #'(lambda (i c) (* i (prime-factor-from-char c))) word :initial-value seed))
 
 (defun scrabble-score-from-char (ch)
   (case ch
@@ -87,9 +84,7 @@
     (t 0)))
 
 (defun scrabble-score-from-word (word)
-  (loop :for c across word
-        :sum (scrabble-score-from-char c) into score
-        :finally (return score)))
+  (reduce #'(lambda (i c) (+ i (scrabble-score-from-char c))) word :initial-value 0))
 
 (defun create-dictionary-map ()
   (setf *word-hash-map* (make-hash-table :size 200000 :test #'eql)
@@ -184,7 +179,7 @@
                 (format t "~%")
                 (setf prev-len (length w)))
               (format t "~A ~A~%" w (scrabble-score-from-word w)))
-            (format t "~%~:D words found" (length word-list))))))))
+            (format t "~%~:D words found~%" (length word-list))))))))
 
 ;;;; User Interface ----------------------------------------------
 (defmacro exit-on-ctrl-c (&body body)
