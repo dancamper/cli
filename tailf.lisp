@@ -77,8 +77,7 @@
       (let* ((launch-info (uiop:launch-program launch-args :output :stream))
              (raw-input-stream (uiop:process-info-output launch-info))
              (input-stream (flexi-streams:make-flexi-stream raw-input-stream)))
-        (setf (flexi-streams:flexi-stream-element-type input-stream) '(unsigned-byte 8)
-              *start-color-pos* (random (length *colors*) (make-random-state t)))
+        (setf (flexi-streams:flexi-stream-element-type input-stream) '(unsigned-byte 8))
         (loop :for line = (read-line input-stream nil nil)
               :while line
               :do (progn
@@ -121,6 +120,13 @@
                      :short #\L
                      :reduce (constantly 'light)))
 
+(defparameter *option-randomize-colors*
+  (adopt:make-option 'random-colors
+                     :help "Randomize color selection"
+                     :long "randomize-colors"
+                     :short #\R
+                     :reduce (constantly t)))
+
 (defparameter *ui*
   (adopt:make-interface
    :name "tailf"
@@ -129,7 +135,8 @@
    :help "FILE can be any file glob acceptable to the tail command line utility."
    :contents (list *option-help*
                    *option-dark-terminal*
-                   *option-light-terminal*)))
+                   *option-light-terminal*
+                   *option-randomize-colors*)))
 
 (defun toplevel ()
   (sb-ext:disable-debugger)
@@ -143,5 +150,7 @@
                         (setf *colors* *colors-for-dark-terminal*))
                        ((eql (gethash 'color options) 'light)
                         (setf *colors* *colors-light-terminal*)))
+                 (when (gethash 'random-colors options)
+                   (setf *start-color-pos* (random (length *colors*) (make-random-state t))))
                  (run arguments)))
         (user-error (e) (adopt:print-error-and-exit e))))))
