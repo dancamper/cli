@@ -33,20 +33,6 @@
 
 ;;;; Functionality -----------------------------------------------
 
-(declaim (inline string-prefix-p))
-(defun string-prefix-p (str prefix)
-  (and (<= (length prefix) (length str))
-       (string= str prefix
-                :start1 0 :end1 (length prefix))))
-
-(declaim (inline string-suffix-p))
-(defun string-suffix-p (str suffix)
-  (and (<= (length suffix) (length str))
-       (string= str suffix
-                :start1 (- (length str) (length suffix)) :end1 (length str))))
-
-;;; --------------------------
-
 (defun djb2 (string)
   ;; http://www.cse.yorku.ca/~oz/hash.html
   (reduce (lambda (hash c) (mod (+ (* 33 hash) c) #.(expt 2 64)))
@@ -95,7 +81,9 @@
         (loop :for line = (read-line input-stream nil nil)
               :while line
               :do (progn
-                    (when (and (string-prefix-p line "==> ") (string-suffix-p line " <=="))
+                    (when (and (> (length line) 8)
+                               (string= line "==> " :end1 4)
+                               (string= line " <==" :start1 (- (length line) 4) :end1 (length line)))
                       (start-colorizing line))
                     (write-line line *standard-output*)))))))
 
