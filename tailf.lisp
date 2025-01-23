@@ -17,8 +17,7 @@
     (dotimes (r 6)
       (dotimes (g 6)
         (dotimes (b 6)
-          (unless (or (plusp (rem (+ r g b) 3))
-                      (funcall fn-exclude-p (+ r g b)))
+          (unless (funcall fn-exclude-p (+ r g b))
             (vector-push-extend (rgb-code r g b) result)))))
     result))
 
