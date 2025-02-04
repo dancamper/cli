@@ -122,7 +122,6 @@ as anagrams will all have the same final PFP value."
             (setf max-cardinality cardinality
                   max-letters letter-list
                   max-pos pos)))))
-    (format t "Cardinality: ~A:~A @ ~A~%" max-letters max-cardinality max-pos)
     (remove-if-not #'(lambda (word) (member (char word max-pos) max-letters)) word-list)))
 
 ;;; --------------------------------------------------------------
