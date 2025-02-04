@@ -22,9 +22,9 @@ Each line is assumed to be one word.  Each word must be
 `+word-len+' in size (others are filtered out).  Each word
 is uppercased."
   (with-open-file (word-file +word-path+)
-    (loop for line = (read-line word-file nil)
-          while line
-          if (= (length line) +word-len+)
+    (loop :for line = (read-line word-file nil)
+          :while line
+          :if (= (length line) +word-len+)
             collect (string-upcase line))))
 
 ;;; --------------------------------------------------------------
@@ -35,72 +35,100 @@ is uppercased."
 
 ;;; --------------------------------------------------------------
 
-(defun word-pfp (word &optional (seed 1))
-  "Compute the Prime Factor Product for a word.
+(declaim (inline char-pf))
+(defun char-pf (ch)
+  "Each uppercase ASCII letter is assigned a prime number."
+  (case ch
+    (#\E 2)
+    (#\A 3)
+    (#\R 5)
+    (#\I 7)
+    (#\O 11)
+    (#\T 13)
+    (#\N 17)
+    (#\S 19)
+    (#\L 23)
+    (#\C 29)
+    (#\U 31)
+    (#\D 37)
+    (#\P 41)
+    (#\M 43)
+    (#\H 47)
+    (#\G 53)
+    (#\B 59)
+    (#\F 61)
+    (#\Y 67)
+    (#\W 71)
+    (#\K 73)
+    (#\V 79)
+    (#\X 83)
+    (#\Z 89)
+    (#\J 97)
+    (#\Q 101)
+    (t 1)))
 
-Each letter is assigned a prime number.  Lookup each
-letter in the word and find its prime number, then multiply
+;;; --------------------------------------------------------------
+
+(defun word-pfp (word &optional (seed 1))
+  "Compute the Prime Factor Product for WORD.
+
+Lookup the prime number assigned to each letter in WORD and multiply
 them all together.
 
 This function is a convenient way of collecting anagrams,
 as anagrams will all have the same final PFP value."
-  (let ((pfp seed))
-    (flet ((char-pf (ch)
-             (case ch
-               (#\E 2)
-               (#\A 3)
-               (#\R 5)
-               (#\I 7)
-               (#\O 11)
-               (#\T 13)
-               (#\N 17)
-               (#\S 19)
-               (#\L 23)
-               (#\C 29)
-               (#\U 31)
-               (#\D 37)
-               (#\P 41)
-               (#\M 43)
-               (#\H 47)
-               (#\G 53)
-               (#\B 59)
-               (#\F 61)
-               (#\Y 67)
-               (#\W 71)
-               (#\K 73)
-               (#\V 79)
-               (#\X 83)
-               (#\Z 89)
-               (#\J 97)
-               (#\Q 101)
-               (t 1))))
-      (loop for c across word
-            do (setf pfp (* pfp (char-pf c))))
-      (max pfp 0))))
+  (reduce #'(lambda (h c) (* h (char-pf c))) word :initial-value seed))
 
 ;;; --------------------------------------------------------------
 
 (defun letter-cardinality (word)
   (let ((letter-hash (make-hash-table)))
-    (loop for c across word
-          do (setf (gethash c letter-hash) 1))
+    (loop :for c across word
+          :do (setf (gethash c letter-hash) 1))
     (hash-table-count letter-hash)))
 
 ;;; --------------------------------------------------------------
 
-(defun word-score (word)
-  (* (word-pfp word) (expt 100 (- 6 (letter-cardinality word)))))
+(defun max-letter-cardinality-at-pos (word-list pos)
+  (let ((letter-hash (make-hash-table))
+        (cardinality-hash (make-hash-table))
+        (max-letters nil)
+        (max-cardinality 0))
+    ;; create char->cardinality hash
+    (mapc #'(lambda (word) (incf (gethash (char word pos) letter-hash 0) 1)) word-list)
+    ;; create cardinality->(list char) hash
+    (maphash #'(lambda (ch v) (push ch (gethash v cardinality-hash))) letter-hash)
+    ;; find max cardinality set
+    (maphash #'(lambda (v ch-list)
+                 (cond ((> v max-cardinality)
+                        (setf max-cardinality v
+                              max-letters ch-list))
+                       ((= v max-cardinality)
+                        (setf max-letters (append max-letters ch-list)))))
+             cardinality-hash)
+    (values max-cardinality max-letters)))
 
 ;;; --------------------------------------------------------------
 
-(defun next-word (word-list)
-  "Returns a random word with the lowest PFP value from WORD-LIST."
-  (let ((result nil)
-        (min-score (apply #'min (mapcar #'word-score word-list))))
-    (loop for word in word-list
-          do (when (= (word-score word) min-score)
-               (push word result)))
-    (random-word result)))
+(defun word-list-with-best-letter-cardinality (word-list &optional (omit-pos-list nil))
+  (let ((max-letters nil)
+        (max-cardinality 0)
+        (max-pos 0))
+    (dotimes (pos +word-len+)
+      (unless (member pos omit-pos-list)
+        (multiple-value-bind (cardinality letter-list)
+            (max-letter-cardinality-at-pos word-list pos)
+          (when (> cardinality max-cardinality)
+            (setf max-cardinality cardinality
+                  max-letters letter-list
+                  max-pos pos)))))
+    (format t "Cardinality: ~A:~A @ ~A~%" max-letters max-cardinality max-pos)
+    (remove-if-not #'(lambda (word) (member (char word max-pos) max-letters)) word-list)))
+
+;;; --------------------------------------------------------------
+
+(defun next-word (word-list &optional (omit-pos-list nil))
+  (random-word (word-list-with-best-letter-cardinality word-list omit-pos-list)))
 
 ;;; --------------------------------------------------------------
 
@@ -134,14 +162,14 @@ ANTI-CHARS:     List of lists; position dependent; each element is a list of
                 will match length of solution.
 BAD-CHARS:      List of uppercase characters that do not exist anywhere in
                 the solution."
-  (and (loop for i from 0 to (1- (length word))
-             always (possible-char-p (char word i)
-                                     (nth i correct-chars)
-                                     (nth i anti-chars)
-                                     bad-chars))
+  (and (loop :for i :from 0 :to (1- (length word))
+             :always (possible-char-p (char word i)
+                                      (nth i correct-chars)
+                                      (nth i anti-chars)
+                                      bad-chars))
        (or (null chars-in-word)
-           (loop for ch in chars-in-word
-                 always (find ch word :test #'eql)))))
+           (loop :for ch :in chars-in-word
+                 :always (find ch word :test #'eql)))))
 
 ;;; --------------------------------------------------------------
 
@@ -197,7 +225,8 @@ It follows that the reply must therefore be of the same length as the guess."
       (finish-output nil)
       (let ((reply (or (make-reply guess solution)
                        (read-line)))
-            (exact-chars-found 0))
+            (exact-chars-found 0)
+            (exact-char-pos nil))
         (cond ((string-equal reply "*")
                (setf word-list (remove-if
                                 (lambda (w) (string-equal w guess))
@@ -211,6 +240,7 @@ It follows that the reply must therefore be of the same length as the guess."
                    (let ((ch (char reply i)))
                      (cond ((upper-case-p ch)
                             (setf (nth i correct-chars) ch)
+                            (push i exact-char-pos)
                             (incf exact-chars-found))
                            ((lower-case-p ch)
                             (pushnew (char-upcase ch) (nth i anti-chars) :test #'eql)
@@ -226,7 +256,7 @@ It follows that the reply must therefore be of the same length as the guess."
                                                                    anti-chars
                                                                    bad-chars))
                                       word-list)
-                           guess (next-word word-list)
+                           guess (next-word word-list exact-char-pos)
                            guess-count (1+ guess-count)))
                  (if (null word-list)
                      (error "No more words to choose from!")))))))
