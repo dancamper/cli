@@ -81,45 +81,43 @@ as anagrams will all have the same final PFP value."
 
 ;;; --------------------------------------------------------------
 
-(defun letter-cardinality (word)
-  (let ((letter-hash (make-hash-table)))
-    (loop :for c across word
-          :do (setf (gethash c letter-hash) 1))
-    (hash-table-count letter-hash)))
+(defun max-letter-count-at-pos (word-list pos)
+  "Given a list of words of the same length and a character position, find the letters
+that occur most often at that position.
 
-;;; --------------------------------------------------------------
-
-(defun max-letter-cardinality-at-pos (word-list pos)
+Returns two values: the maximum count and a list of characters that occur that many times."
   (let ((letter-hash (make-hash-table))
-        (cardinality-hash (make-hash-table))
+        (count-hash (make-hash-table))
         (max-letters nil)
-        (max-cardinality 0))
-    ;; create char->cardinality hash
+        (max-count 0))
+    ;; create char->count hash
     (mapc #'(lambda (word) (incf (gethash (char word pos) letter-hash 0) 1)) word-list)
-    ;; create cardinality->(list char) hash
-    (maphash #'(lambda (ch v) (push ch (gethash v cardinality-hash))) letter-hash)
-    ;; find max cardinality set
+    ;; create count->(list char) hash
+    (maphash #'(lambda (ch v) (push ch (gethash v count-hash))) letter-hash)
+    ;; find max count set
     (maphash #'(lambda (v ch-list)
-                 (cond ((> v max-cardinality)
-                        (setf max-cardinality v
+                 (cond ((> v max-count)
+                        (setf max-count v
                               max-letters ch-list))
-                       ((= v max-cardinality)
+                       ((= v max-count)
                         (setf max-letters (append max-letters ch-list)))))
-             cardinality-hash)
-    (values max-cardinality max-letters)))
+             count-hash)
+    (values max-count max-letters)))
 
 ;;; --------------------------------------------------------------
 
-(defun word-list-with-best-letter-cardinality (word-list &optional (omit-pos-list nil))
+(defun word-list-with-best-letter-count (word-list &optional (omit-pos-list nil))
+  "Determine the highest-occurring letters in any position within WORD-LIST, other than positions listed in OMIT-POS-LIST,
+then filter WORD-LIST by those letters."
   (let ((max-letters nil)
-        (max-cardinality 0)
+        (max-count 0)
         (max-pos 0))
     (dotimes (pos +word-len+)
       (unless (member pos omit-pos-list)
-        (multiple-value-bind (cardinality letter-list)
-            (max-letter-cardinality-at-pos word-list pos)
-          (when (> cardinality max-cardinality)
-            (setf max-cardinality cardinality
+        (multiple-value-bind (count letter-list)
+            (max-letter-count-at-pos word-list pos)
+          (when (> count max-count)
+            (setf max-count count
                   max-letters letter-list
                   max-pos pos)))))
     (remove-if-not #'(lambda (word) (member (char word max-pos) max-letters)) word-list)))
@@ -127,7 +125,7 @@ as anagrams will all have the same final PFP value."
 ;;; --------------------------------------------------------------
 
 (defun next-word (word-list &optional (omit-pos-list nil))
-  (random-word (word-list-with-best-letter-cardinality word-list omit-pos-list)))
+  (random-word (word-list-with-best-letter-count word-list omit-pos-list)))
 
 ;;; --------------------------------------------------------------
 
