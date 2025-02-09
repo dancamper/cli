@@ -10,6 +10,7 @@
 ;;;; Configuration -----------------------------------------------
 (defparameter +word-len+ 5)
 (defparameter +word-path+ "~/Documents/wwf_wordle.txt")
+(defvar *next-word-style* :random)
 
 ;;;; Errors ------------------------------------------------------
 (define-condition user-error (error) ())
@@ -125,7 +126,10 @@ then filter WORD-LIST by those letters."
 ;;; --------------------------------------------------------------
 
 (defun next-word (word-list &optional (omit-pos-list nil))
-  (random-word (word-list-with-best-letter-count word-list omit-pos-list)))
+  (let ((new-list (word-list-with-best-letter-count word-list omit-pos-list)))
+    (case *next-word-style*
+      (:common (first (sort new-list #'< :key #'word-pfp)))
+      (t (random-word new-list)))))
 
 ;;; --------------------------------------------------------------
 
@@ -272,6 +276,20 @@ It follows that the reply must therefore be of the same length as the guess."
                      :short #\h
                      :reduce (constantly t)))
 
+(defparameter *option-next-word-random*
+  (adopt:make-option 'next-word-random
+                     :result-key 'next-word
+                     :help "Next guess is chosen randomly"
+                     :long "random"
+                     :reduce (constantly :random)))
+
+(defparameter *option-next-word-common*
+  (adopt:make-option 'next-word-common
+                     :result-key 'next-word
+                     :help "Next guess is most common"
+                     :long "common"
+                     :reduce (constantly :common)))
+
 (defparameter *first-word*
   (adopt:make-option 'first-word
                      :help "If supplied, start with this word. If not supplied, start with a random word."
@@ -301,6 +319,8 @@ Also, the user can enter only a '*' to indicate that the guessed word is utterly
    :usage "[-f FIRST-WORD] [-s SOLUTION]"
    :help ""
    :contents (list *option-help*
+                   *option-next-word-common*
+                   *option-next-word-random*
                    *first-word*
                    *solution*)
    ))
@@ -312,6 +332,8 @@ Also, the user can enter only a '*' to indicate that the guessed word is utterly
       (declare (ignore arguments))
       (when (gethash 'help options nil)
         (adopt:print-help-and-exit *ui*))
+      (when (gethash 'next-word options nil)
+        (setf *next-word-style* (gethash 'next-word options)))
       (handler-case (run (gethash 'first-word options nil) (gethash 'solution options nil))
         (user-error (e) (adopt:print-error-and-exit e))))))
 
