@@ -126,10 +126,13 @@ then filter WORD-LIST by those letters."
 ;;; --------------------------------------------------------------
 
 (defun next-word (word-list &optional (omit-pos-list nil))
-  (let ((new-list (sort (word-list-with-best-letter-count word-list omit-pos-list) #'< :key #'word-pfp)))
-    (case *next-word-style*
-      (:common (first new-list))
-      (t (nth (random (max 5 (length new-list))) new-list)))))
+  (let ((next-list (word-list-with-best-letter-count word-list omit-pos-list)))
+    (if (> (length next-list) 1)
+        (let ((sorted-list (sort next-list #'< :key #'word-pfp)))
+          (case *next-word-style*
+            (:common (first sorted-list))
+            (t (nth (random (max 5 (length sorted-list))) sorted-list))))
+        (first next-list))))
 
 ;;; --------------------------------------------------------------
 
