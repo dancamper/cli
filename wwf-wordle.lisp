@@ -7,6 +7,8 @@
 
 (in-package :wwf-wordle)
 
+;; (declaim (optimize (debug 3)))
+
 ;;;; Configuration -----------------------------------------------
 (defparameter +word-len+ 5)
 (defparameter +word-path+ "~/Documents/wwf_wordle.txt")
@@ -82,6 +84,15 @@ as anagrams will all have the same final PFP value."
 
 ;;; --------------------------------------------------------------
 
+(defun unique-letter-count (word)
+  "Returns the number of unique letters in WORD; case sensitive."
+  (let ((h (make-hash-table)))
+    (loop :for c :across word
+          :do (setf (gethash c h) 1))
+    (hash-table-count h)))
+
+;;; --------------------------------------------------------------
+
 (defun max-letter-count-at-pos (word-list pos)
   "Given a list of words of the same length and a character position, find the letters
 that occur most often at that position.
@@ -126,12 +137,15 @@ then filter WORD-LIST by those letters."
 ;;; --------------------------------------------------------------
 
 (defun next-word (word-list &optional (omit-pos-list nil))
-  (let ((next-list (word-list-with-best-letter-count word-list omit-pos-list)))
+  (let* ((best-list (word-list-with-best-letter-count word-list omit-pos-list))
+         (no-dup-chars-list (remove-if-not #'(lambda (w) (= (unique-letter-count w) +word-len+)) best-list))
+         (next-list (or no-dup-chars-list best-list)))
     (if (> (length next-list) 1)
-        (let ((sorted-list (sort next-list #'< :key #'word-pfp)))
+        (let* ((sorted-list (sort next-list #'< :key #'word-pfp))
+               (pos (random (min +word-len+ (length sorted-list)))))
           (case *next-word-style*
             (:common (first sorted-list))
-            (t (nth (random (max 5 (length sorted-list))) sorted-list))))
+            (otherwise (nth pos sorted-list))))
         (first next-list))))
 
 ;;; --------------------------------------------------------------
