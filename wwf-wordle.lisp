@@ -11,7 +11,7 @@
 
 ;;;; Configuration -----------------------------------------------
 (defparameter +word-len+ 5)
-(defparameter +word-path+ "~/Documents/wwf_wordle.txt")
+(defparameter +word-path+ "~/Documents/wwf_scrabble.txt")
 (defvar *next-word-style* :random)
 
 ;;;; Errors ------------------------------------------------------
@@ -265,14 +265,11 @@ It follows that the reply must therefore be of the same length as the guess."
                             (pushnew (char-upcase ch) chars-in-word :test #'eql))
                            (t
                             (pushnew (char guess i) bad-chars :test #'eql)))))
-                 (if (= exact-chars-found +word-len+)
+                 (if (and (= exact-chars-found +word-len+)
+                          (string-equal reply guess))
                      (setf solvedp t)
                      (setf word-list (remove-if-not
-                                      (lambda (w) (possible-word-p w
-                                                                   chars-in-word
-                                                                   correct-chars
-                                                                   anti-chars
-                                                                   bad-chars))
+                                      (lambda (w) (possible-word-p w chars-in-word correct-chars anti-chars bad-chars))
                                       word-list)
                            guess (next-word word-list exact-char-pos)
                            guess-count (1+ guess-count)))
