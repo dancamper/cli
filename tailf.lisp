@@ -9,21 +9,71 @@
 
 ;;;; Configuration -----------------------------------------------
 
-(defun rgb-code (r g b)
-  (+ (* r 36) (* g 6) (* b 1) 16))
+(defparameter *colors-for-dark-terminal* '((240 248 255)  ; alice-blue
+                                           (245 245 220)  ; beige
+                                           (255 228 196)  ; bisque
+                                           (255 235 205) ; blanched-almond
+                                           (255 255 255) ; bright-white
+                                           (220 220 220) ; gainsboro
+                                           (240 255 240) ; honeydew
+                                           (255 255 240) ; ivory
+                                           (255 240 245) ; lavender-blush
+                                           (230 230 250) ; lavender
+                                           (255 250 205) ; lemon-chiffon
+                                           (240 128 128) ; light-coral
+                                           (224 255 255) ; light-cyan
+                                           (250 250 210) ; light-goldenrod-yellow
+                                           (144 238 144) ; light-green
+                                           (240 230 140) ; light-khaki
+                                           (255 182 255) ; light-magenta
+                                           (255 182 193) ; light-pink
+                                           (255 160 122) ; light-salmon
+                                           (135 206 250) ; light-sky-blue
+                                           (176 196 222) ; light-steel-blue
+                                           (245 255 250) ; mint-cream
+                                           (255 228 225) ; misty-rose
+                                           (173 216 230) ; pale-blue
+                                           (238 232 170) ; pale-goldenrod
+                                           (175 238 238) ; pale-turquoise
+                                           (255 218 185) ; peach-puff
+                                           (176 224 230) ; powder-blue
+                                           (216 191 216) ; thistle
+                                           (245 222 179) ; wheat
+                                           ))
 
-(defun make-colors (fn-exclude-p)
-  (let ((result (make-array 256 :fill-pointer 0)))
-    (dotimes (r 6)
-      (dotimes (g 6)
-        (dotimes (b 6)
-          (unless (funcall fn-exclude-p (+ r g b))
-            (vector-push-extend (rgb-code r g b) result)))))
-    result))
+(defparameter *colors-for-light-terminal* '((165 42 42)  ; brown
+                                            (54 69 79)   ; charcoal
+                                            (123 63 0)   ; chocolate
+                                            (220 20 60)  ; crimson
+                                            (0 0 139)    ; dark-blue
+                                            (0 139 139)  ; dark-cyan
+                                            (184 134 11) ; dark-goldenrod
+                                            (0 100 0)    ; dark-green
+                                            (139 0 139) ; dark-magenta
+                                            (85 107 47) ; dark-olive-green
+                                            (153 50 204) ; dark-orchid
+                                            (139 0 0)    ; dark-red
+                                            (72 61 139) ; dark-slate-blue
+                                            (47 79 79) ; dark-slate-gray
+                                            (105 105 105) ; dim-gray
+                                            (178 34 34)   ; firebrick
+                                            (34 139 34) ; forest-green
+                                            (42 52 57)  ; gunmetal
+                                            (75 0 130)  ; indigo
+                                            (0 0 0)     ; jet-black
+                                            (128 0 0)   ; maroon
+                                            (25 25 112) ; midnight-blue
+                                            (0 73 83) ; midnight-green
+                                            (0 0 128) ; navy-blue
+                                            (107 142 35) ; olive-drab
+                                            (128 128 0)  ; olive
+                                            (0 33 71)    ; oxford-blue
+                                            (102 51 153) ; rebecca-purple
+                                            (139 69 19) ; saddle-brown
+                                            (0 128 128) ; teal
+                                            ))
 
-(defparameter *colors-for-dark-terminal*  (make-colors (lambda (v) (< v 3))))
-(defparameter *colors-light-terminal* (make-colors (lambda (v) (> v 11))))
-(defvar *colors* *colors-for-dark-terminal*) ; default to dark
+(defvar *colors* (copy-list *colors-for-dark-terminal*)) ; default to dark
 (defvar *start-color-pos* 0)
 (defvar *color-map* (make-hash-table :test #'equalp))
 
@@ -33,37 +83,25 @@
 
 ;;;; Functionality -----------------------------------------------
 
-(defun djb2 (string)
-  ;; http://www.cse.yorku.ca/~oz/hash.html
-  (reduce (lambda (hash c) (mod (+ (* 33 hash) c) #.(expt 2 64)))
-          string
-          :initial-value 5381
-          :key #'char-code))
-
-;;; --------------------------
-
-(defun choose-color (string)
-  (let* ((pos (mod (+ (djb2 string) *start-color-pos*) (length *colors*)))
-         (color (aref *colors* pos)))
-    (if (zerop color)
-        (setf color (choose-color (format nil "~A^" string)))
-        (setf (aref *colors* pos) 0))
-    color))
+(defun shuffle-colors ()
+  (loop :for x :from (1- (length *colors*)) :downto 1
+        :do (let ((i (random (1+ x))))
+              (rotatef (nth x *colors*) (nth i *colors*)))))
 
 (defun find-color (string)
   (or (gethash string *color-map*)
-      (setf (gethash string *color-map*) (choose-color string))))
+      (setf (gethash string *color-map*) (pop *colors*))))
 
 (defun ansi-color-start (color)
-  (format nil "~C[38;5;~Dm" #\Escape color))
+  (destructuring-bind (r g b) color
+    (format nil "~C[38;2;~D;~D;~Dm" #\Escape r g b)))
 
 (defun ansi-color-end ()
   (format nil "~C[0m" #\Escape))
 
-;;; --------------------------
-
 (defun start-colorizing (string)
-  (format *standard-output* "~A" (ansi-color-start (find-color string))))
+  (when *colors*
+    (format *standard-output* "~A" (ansi-color-start (find-color string)))))
 
 (defun stop-colorizing ()
   (format *standard-output* "~A" (ansi-color-end)))
@@ -77,6 +115,7 @@
              (raw-input-stream (uiop:process-info-output launch-info))
              (input-stream (flexi-streams:make-flexi-stream raw-input-stream)))
         (setf (flexi-streams:flexi-stream-element-type input-stream) '(unsigned-byte 8))
+        (shuffle-colors)
         (loop :for line = (read-line input-stream nil nil)
               :while line
               :do (progn
@@ -119,13 +158,6 @@
                      :short #\L
                      :reduce (constantly 'light)))
 
-(defparameter *option-randomize-colors*
-  (adopt:make-option 'random-colors
-                     :help "Randomize color selection"
-                     :long "randomize-colors"
-                     :short #\R
-                     :reduce (constantly t)))
-
 (defparameter *ui*
   (adopt:make-interface
    :name "tailf"
@@ -134,8 +166,7 @@
    :help "FILE can be any file glob acceptable to the tail command line utility."
    :contents (list *option-help*
                    *option-dark-terminal*
-                   *option-light-terminal*
-                   *option-randomize-colors*)))
+                   *option-light-terminal*)))
 
 (defun toplevel ()
   (sb-ext:disable-debugger)
@@ -146,10 +177,10 @@
                  (adopt:print-help-and-exit *ui*))
                 (t
                  (cond ((eql (gethash 'color options) 'dark)
-                        (setf *colors* *colors-for-dark-terminal*))
+                        (setf *colors* (copy-list *colors-for-dark-terminal*)))
                        ((eql (gethash 'color options) 'light)
-                        (setf *colors* *colors-light-terminal*)))
-                 (when (gethash 'random-colors options)
-                   (setf *start-color-pos* (random (length *colors*) (make-random-state t))))
+                        (setf *colors* (copy-list *colors-for-light-terminal*)))
+                       (t
+                        (setf *colors* (copy-list *colors-for-dark-terminal*))))
                  (run arguments)))
         (user-error (e) (adopt:print-error-and-exit e))))))
