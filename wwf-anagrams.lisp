@@ -92,14 +92,12 @@
   (with-open-file (word-file +word-path+)
     (loop :for line = (read-line word-file nil)
           :while line
-          :if (>= (length line) +min-word-length+)
-            do (let* ((one-word (string-upcase line))
-                      (pfp (prime-factor-product-from-word one-word)))
-                 (when (plusp pfp)
-                   (setf *max-word-length* (max *max-word-length* (length one-word)))
-                   (pushnew one-word
-                            (gethash pfp *word-hash-map*)
-                            :test #'string=)))))
+          :do (when (>= (length line) +min-word-length+)
+                (let* ((one-word (string-upcase line))
+                       (pfp (prime-factor-product-from-word one-word)))
+                  (when (plusp pfp)
+                    (setf *max-word-length* (max *max-word-length* (length one-word)))
+                    (pushnew one-word (gethash pfp *word-hash-map*) :test #'string=))))))
   *word-hash-map*)
 
 (defun ensure-dictionary-map ()
