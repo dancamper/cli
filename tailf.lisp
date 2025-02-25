@@ -76,6 +76,7 @@
 (defvar *colors* (copy-list *colors-for-dark-terminal*)) ; default to dark
 (defvar *start-color-pos* 0)
 (defvar *color-map* (make-hash-table :test #'equalp))
+(defvar *my-random-state* nil)
 
 ;;;; Errors ------------------------------------------------------
 
@@ -85,7 +86,7 @@
 
 (defun shuffle-colors ()
   (loop :for x :from (1- (length *colors*)) :downto 1
-        :do (let ((i (random (1+ x))))
+        :do (let ((i (random (1+ x) *my-random-state*)))
               (rotatef (nth x *colors*) (nth i *colors*)))))
 
 (defun find-color (string)
@@ -114,7 +115,8 @@
       (let* ((launch-info (uiop:launch-program launch-args :output :stream))
              (raw-input-stream (uiop:process-info-output launch-info))
              (input-stream (flexi-streams:make-flexi-stream raw-input-stream)))
-        (setf (flexi-streams:flexi-stream-element-type input-stream) '(unsigned-byte 8))
+        (setf (flexi-streams:flexi-stream-element-type input-stream) '(unsigned-byte 8)
+              *my-random-state* (make-random-state t))
         (shuffle-colors)
         (loop :for line = (read-line input-stream nil nil)
               :while line
