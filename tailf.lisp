@@ -9,68 +9,108 @@
 
 ;;;; Configuration -----------------------------------------------
 
-(defparameter *colors-for-dark-terminal* '((240 248 255)  ; alice-blue
-                                           (245 245 220)  ; beige
-                                           (255 228 196)  ; bisque
-                                           (255 235 205) ; blanched-almond
-                                           (255 255 255) ; bright-white
-                                           (220 220 220) ; gainsboro
-                                           (240 255 240) ; honeydew
-                                           (255 255 240) ; ivory
-                                           (255 240 245) ; lavender-blush
-                                           (230 230 250) ; lavender
-                                           (255 250 205) ; lemon-chiffon
-                                           (240 128 128) ; light-coral
-                                           (224 255 255) ; light-cyan
-                                           (250 250 210) ; light-goldenrod-yellow
-                                           (144 238 144) ; light-green
-                                           (240 230 140) ; light-khaki
-                                           (255 182 255) ; light-magenta
-                                           (255 182 193) ; light-pink
-                                           (255 160 122) ; light-salmon
-                                           (135 206 250) ; light-sky-blue
-                                           (176 196 222) ; light-steel-blue
-                                           (245 255 250) ; mint-cream
-                                           (255 228 225) ; misty-rose
-                                           (173 216 230) ; pale-blue
-                                           (238 232 170) ; pale-goldenrod
-                                           (175 238 238) ; pale-turquoise
-                                           (255 218 185) ; peach-puff
-                                           (176 224 230) ; powder-blue
-                                           (216 191 216) ; thistle
-                                           (245 222 179) ; wheat
+(defparameter *colors-for-dark-terminal* '((255 255 255) ; Bright White
+                                           (250 250 210) ; Light Goldenrod Yellow
+                                           (224 255 255) ; Light Cyan
+                                           (173 216 230) ; Pale Blue
+                                           (144 238 144) ; Light Green
+                                           (230 230 250) ; Lavender
+                                           (255 182 193) ; Light Pink
+                                           (255 218 185) ; Peach Puff
+                                           (240 128 128) ; Light Coral
+                                           (255 250 205) ; Lemon Chiffon
+                                           (255 228 225) ; Misty Rose
+                                           (255 160 122) ; Light Salmon
+                                           (175 238 238) ; Pale Turquoise
+                                           (216 191 216) ; Thistle
+                                           (176 224 230) ; Powder Blue
+                                           (135 206 250) ; Light Sky Blue
+                                           (176 196 222) ; Light Steel Blue
+                                           (240 255 240) ; Honeydew
+                                           (245 255 250) ; Mint Cream
+                                           (240 248 255) ; Alice Blue
+                                           (255 235 205) ; Blanched Almond
+                                           (255 228 196) ; Bisque
+                                           (255 240 245) ; Lavender Blush
+                                           (238 232 170) ; Pale Goldenrod
+                                           (245 245 220) ; Beige
+                                           (255 255 240) ; Ivory
+                                           (245 222 179) ; Wheat
+                                           (220 220 220) ; Gainsboro
+                                           (255 182 255) ; Light Magenta
+                                           (240 230 140) ; Light Khaki
+                                           (255 245 238) ; Seashell
+                                           (255 250 250) ; Snow
+                                           (255 239 213) ; Papaya Whip
+                                           (200 200 255) ; Periwinkle
+                                           (219 112 147) ; Pale Violet Red
+                                           (250 240 230) ; Linen
+                                           (255 250 240) ; Floral White
+                                           (253 245 230) ; Old Lace
+                                           (247 231 206) ; Champagne
+                                           (252 230 201) ; Eggshell
+                                           (255 248 220) ; Cornsilk
+                                           (240 255 255) ; Azure
+                                           (248 248 255) ; Ghost White
+                                           (245 245 245) ; White Smoke
+                                           (224 208 255) ; Mauve
+                                           (137 207 240) ; Baby Blue
+                                           (255 255 224) ; Light Yellow
+                                           (255 253 208) ; Cream
+                                           (255 244 214) ; Buttermilk
+                                           (248 202 204) ; Rose Quartz
                                            ))
 
-(defparameter *colors-for-light-terminal* '((165 42 42)  ; brown
-                                            (54 69 79)   ; charcoal
-                                            (123 63 0)   ; chocolate
-                                            (220 20 60)  ; crimson
-                                            (0 0 139)    ; dark-blue
-                                            (0 139 139)  ; dark-cyan
-                                            (184 134 11) ; dark-goldenrod
-                                            (0 100 0)    ; dark-green
-                                            (139 0 139) ; dark-magenta
-                                            (85 107 47) ; dark-olive-green
-                                            (153 50 204) ; dark-orchid
-                                            (139 0 0)    ; dark-red
-                                            (72 61 139) ; dark-slate-blue
-                                            (47 79 79) ; dark-slate-gray
-                                            (105 105 105) ; dim-gray
-                                            (178 34 34)   ; firebrick
-                                            (34 139 34) ; forest-green
-                                            (42 52 57)  ; gunmetal
-                                            (75 0 130)  ; indigo
-                                            (0 0 0)     ; jet-black
-                                            (128 0 0)   ; maroon
-                                            (25 25 112) ; midnight-blue
-                                            (0 73 83) ; midnight-green
-                                            (0 0 128) ; navy-blue
-                                            (107 142 35) ; olive-drab
-                                            (128 128 0)  ; olive
-                                            (0 33 71)    ; oxford-blue
-                                            (102 51 153) ; rebecca-purple
-                                            (139 69 19) ; saddle-brown
-                                            (0 128 128) ; teal
+(defparameter *colors-for-light-terminal* '((0 0 0) ; Jet Black
+                                            (54 69 79) ; Charcoal
+                                            (47 79 79) ; Dark Slate Gray
+                                            (0 0 128)  ; Navy Blue
+                                            (25 25 112) ; Midnight Blue
+                                            (75 0 130)  ; Indigo
+                                            (85 107 47) ; Dark Olive Green
+                                            (34 139 34) ; Forest Green
+                                            (0 100 0)   ; Dark Green
+                                            (0 139 139) ; Dark Cyan
+                                            (72 61 139) ; Dark Slate Blue
+                                            (139 0 139) ; Dark Magenta
+                                            (128 0 0)   ; Maroon
+                                            (139 0 0)   ; Dark Red
+                                            (178 34 34) ; Firebrick
+                                            (139 69 19) ; Saddle Brown
+                                            (123 63 0)  ; Chocolate
+                                            (184 134 11) ; Dark Goldenrod
+                                            (128 128 0)  ; Olive
+                                            (105 105 105) ; Dim Gray
+                                            (153 50 204) ; Dark Orchid
+                                            (102 51 153) ; Rebecca Purple
+                                            (165 42 42)  ; Brown
+                                            (0 0 139)    ; Dark Blue
+                                            (220 20 60)  ; Crimson
+                                            (0 128 128)  ; Teal
+                                            (107 142 35) ; Olive Drab
+                                            (42 52 57)   ; Gunmetal
+                                            (0 73 83) ; Midnight Green
+                                            (0 33 71) ; Oxford Blue
+                                            (50 47 46) ; Ebony
+                                            (41 36 33) ; Raven
+                                            (0 51 102) ; Deep Sea Blue
+                                            (15 82 186) ; Sapphire
+                                            (43 0 28)   ; Aubergine
+                                            (53 94 59)  ; Hunter Green
+                                            (0 106 78)  ; Bottle Green
+                                            (0 102 102) ; Dark Teal
+                                            (128 0 32)  ; Deep Maroon
+                                            (114 47 55) ; Cordovan
+                                            (115 74 18) ; Dark Copper
+                                            (40 30 20) ; Midnight Brown
+                                            (0 49 83)  ; Prussian Blue
+                                            (74 100 108) ; Deep Space Sparkle
+                                            (65 72 51)   ; Rifle Green
+                                            (102 0 0)    ; OxBlood
+                                            (0 71 171)   ; Cobalt Blue
+                                            (0 77 77)    ; Deep Teal
+                                            (50 0 50)    ; Blackberry
+                                            (0 31 63)    ; Ink Blue
                                             ))
 
 (defvar *colors* (copy-list *colors-for-dark-terminal*)) ; default to dark
