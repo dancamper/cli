@@ -1,5 +1,5 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (ql:quickload '(:adopt :alexandria :flexi-streams :with-user-abort) :silent t))
+  (ql:quickload '(:adopt :alexandria :flexi-streams :random-state :with-user-abort) :silent t))
 
 (defpackage :tailf
   (:use :cl)
@@ -126,7 +126,7 @@
 
 (defun shuffle-colors ()
   (loop :for x :from (1- (length *colors*)) :downto 1
-        :do (let ((i (random (1+ x) *my-random-state*)))
+        :do (let ((i (random-state:random-int *my-random-state* 0 (1+ x))))
               (rotatef (nth x *colors*) (nth i *colors*)))))
 
 (defun find-color (string)
@@ -156,7 +156,7 @@
              (raw-input-stream (uiop:process-info-output launch-info))
              (input-stream (flexi-streams:make-flexi-stream raw-input-stream)))
         (setf (flexi-streams:flexi-stream-element-type input-stream) '(unsigned-byte 8)
-              *my-random-state* (make-random-state t))
+              *my-random-state* (random-state:make-generator :mersenne-twister-32 (get-universal-time)))
         (shuffle-colors)
         (loop :for line = (read-line input-stream nil nil)
               :while line
