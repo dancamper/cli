@@ -133,12 +133,14 @@
   (or (gethash string *color-map*)
       (setf (gethash string *color-map*) (pop *colors*))))
 
-(defun ansi-color-start (color)
-  (destructuring-bind (r g b) color
-    (format nil "~C[38;2;~D;~D;~Dm" #\Escape r g b)))
-
 (defun ansi-color-end ()
   (format nil "~C[0m" #\Escape))
+
+(defun ansi-color-start (color)
+  (if color
+      (destructuring-bind (r g b) color
+        (format nil "~C[38;2;~D;~D;~Dm" #\Escape r g b))
+      (ansi-color-end)))
 
 (defun start-colorizing (string)
   (when *colors*
