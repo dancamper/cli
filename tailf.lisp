@@ -10,44 +10,43 @@
 
 ;;;; Configuration -----------------------------------------------
 
-(a:define-constant +colors-for-dark-terminal+ '("#696969"  ; dimgray
-                                                "#808080"  ; gray
-                                                "#a9a9a9"  ; darkgray
-                                                "#d3d3d3"  ; lightgray
-                                                "#ffffff"  ; white
+(a:define-constant +colors-for-dark-terminal+ '("#696969" ; dimgray
+                                                "#808080" ; gray
+                                                "#a9a9a9" ; darkgray
+                                                "#d3d3d3" ; lightgray
+                                                "#ffffff" ; white
                                                 "#2f4f4f" ; darkslategray
                                                 "#556b2f" ; darkolivegreen
                                                 "#8b4513" ; saddlebrown
                                                 "#6b8e23" ; olivedrab
                                                 "#a52a2a" ; brown
                                                 "#2e8b57" ; seagreen
-                                                "#228b22" ; forestgreen
                                                 "#7f0000" ; maroon2
                                                 "#191970" ; midnightblue
-                                                "#006400" ; darkgreen
                                                 "#808000" ; olive
                                                 "#483d8b" ; darkslateblue
                                                 "#b22222" ; firebrick
                                                 "#5f9ea0" ; cadetblue
                                                 "#778899" ; lightslategray
+                                                "#008000" ; green
                                                 "#3cb371" ; mediumseagreen
                                                 "#bc8f8f" ; rosybrown
                                                 "#663399" ; rebeccapurple
+                                                "#008080" ; teal
                                                 "#b8860b" ; darkgoldenrod
                                                 "#bdb76b" ; darkkhaki
-                                                "#008b8b" ; darkcyan
                                                 "#cd853f" ; peru
                                                 "#4682b4" ; steelblue
+                                                "#000080" ; navy
                                                 "#d2691e" ; chocolate
                                                 "#9acd32" ; yellowgreen
                                                 "#20b2aa" ; lightseagreen
                                                 "#cd5c5c" ; indianred
-                                                "#00008b" ; darkblue
                                                 "#4b0082" ; indigo
                                                 "#32cd32" ; limegreen
                                                 "#daa520" ; goldenrod
                                                 "#8fbc8f" ; darkseagreen
-                                                "#8b008b" ; darkmagenta
+                                                "#800080" ; purple
                                                 "#b03060" ; maroon3
                                                 "#d2b48c" ; tan
                                                 "#66cdaa" ; mediumaquamarine
@@ -65,9 +64,9 @@
                                                 "#40e0d0" ; turquoise
                                                 "#7fff00" ; chartreuse
                                                 "#00ff00" ; lime
+                                                "#9400d3" ; darkviolet
                                                 "#ba55d3" ; mediumorchid
                                                 "#00fa9a" ; mediumspringgreen
-                                                "#8a2be2" ; blueviolet
                                                 "#00ff7f" ; springgreen
                                                 "#4169e1" ; royalblue
                                                 "#e9967a" ; darksalmon
@@ -94,19 +93,20 @@
                                                 "#ffff54" ; laserlemon
                                                 "#6495ed" ; cornflower
                                                 "#dda0dd" ; plum
+                                                "#90ee90" ; lightgreen
                                                 "#add8e6" ; lightblue
+                                                "#87ceeb" ; skyblue
                                                 "#ff1493" ; deeppink
                                                 "#7b68ee" ; mediumslateblue
+                                                "#ffa07a" ; lightsalmon
                                                 "#afeeee" ; paleturquoise
-                                                "#98fb98" ; palegreen
-                                                "#87cefa" ; lightskyblue
                                                 "#7fffd4" ; aquamarine
-                                                "#fafad2" ; lightgoldenrod
                                                 "#ffdead" ; navajowhite
                                                 "#ff69b4" ; hotpink
                                                 "#ffe4c4" ; bisque
                                                 "#e6e6fa" ; lavender
                                                 "#ffe4e1" ; mistyrose
+                                                "#fff8dc" ; cornsilk
                                                 "#f0fff0" ; honeydew
                                                 "#e0ffff" ; lightcyan
                                                 "#ffb6c1" ; lightpink
@@ -117,7 +117,6 @@
                                                  "#808080" ; gray
                                                  "#a9a9a9" ; darkgray
                                                  "#c0c0c0" ; silver
-                                                 "#dcdcdc" ; gainsboro
                                                  "#2f4f4f" ; darkslategray
                                                  "#556b2f" ; darkolivegreen
                                                  "#8b4513" ; saddlebrown
@@ -134,30 +133,34 @@
                                                  "#483d8b" ; darkslateblue
                                                  "#b22222" ; firebrick
                                                  "#5f9ea0" ; cadetblue
+                                                 "#008000" ; green
                                                  "#3cb371" ; mediumseagreen
                                                  "#bc8f8f" ; rosybrown
                                                  "#663399" ; rebeccapurple
+                                                 "#008080" ; teal
                                                  "#b8860b" ; darkgoldenrod
                                                  "#bdb76b" ; darkkhaki
-                                                 "#008b8b" ; darkcyan
                                                  "#cd853f" ; peru
                                                  "#4682b4" ; steelblue
+                                                 "#000080" ; navy
                                                  "#d2691e" ; chocolate
                                                  "#9acd32" ; yellowgreen
                                                  "#20b2aa" ; lightseagreen
                                                  "#cd5c5c" ; indianred
-                                                 "#00008b" ; darkblue
                                                  "#4b0082" ; indigo
                                                  "#32cd32" ; limegreen
                                                  "#daa520" ; goldenrod
                                                  "#7f007f" ; purple2
                                                  "#8fbc8f" ; darkseagreen
+                                                 "#8b008b" ; darkmagenta
                                                  "#b03060" ; maroon3
+                                                 "#d2b48c" ; tan
                                                  "#48d1cc" ; mediumturquoise
                                                  "#66cdaa" ; mediumaquamarine
                                                  "#9932cc" ; darkorchid
                                                  "#ff0000" ; red
                                                  "#ff4500" ; orangered
+                                                 "#00ced1" ; darkturquoise
                                                  "#ff8c00" ; darkorange
                                                  "#ffa500" ; orange
                                                  "#ffd700" ; gold
@@ -199,19 +202,16 @@
                                                  "#ffff54" ; laserlemon
                                                  "#6495ed" ; cornflower
                                                  "#dda0dd" ; plum
-                                                 "#add8e6" ; lightblue
+                                                 "#b0e0e6" ; powderblue
                                                  "#87ceeb" ; skyblue
                                                  "#ff1493" ; deeppink
                                                  "#7b68ee" ; mediumslateblue
                                                  "#ffa07a" ; lightsalmon
-                                                 "#afeeee" ; paleturquoise
+                                                 "#ee82ee" ; violet
                                                  "#98fb98" ; palegreen
                                                  "#87cefa" ; lightskyblue
                                                  "#7fffd4" ; aquamarine
-                                                 "#ffdead" ; navajowhite
                                                  "#ff69b4" ; hotpink
-                                                 "#ffe4c4" ; bisque
-                                                 "#ffc0cb" ; pink
                                                  ) :test #'equalp)
 
 (defvar *terminal-color-opt* :dark)
