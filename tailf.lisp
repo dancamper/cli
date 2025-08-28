@@ -225,22 +225,24 @@
 
 ;;;; Functionality -----------------------------------------------
 
+(defun parse-hex-color (hex-color)
+  ;; assumes that hex-color begins with #\#
+  (list (parse-integer (subseq hex-color 1 3) :radix 16)
+        (parse-integer (subseq hex-color 3 5) :radix 16)
+        (parse-integer (subseq hex-color 5 7) :radix 16)))
+
 (defun assign-colors (hex-colors)
   (setf *colors* nil)
   (loop :for hex-color :in hex-colors
-        :do (let* ((clean (if (char= (char hex-color 0) #\#)
-                              (subseq hex-color 1)
-                              hex-color)))
-              (push (list (parse-integer (subseq clean 0 2) :radix 16)
-                          (parse-integer (subseq clean 2 4) :radix 16)
-                          (parse-integer (subseq clean 4 6) :radix 16))
-                    *colors*)))
+        :do (push (parse-hex-color hex-color) *colors*))
   *colors*)
 
 (defun shuffle-colors ()
-  (loop :for x :from (1- (length *colors*)) :downto 1
-        :do (let ((i (random-state:random-int *my-random-state* 0 (1+ x))))
-              (rotatef (nth x *colors*) (nth i *colors*)))))
+  (loop :for x :to (length *colors*)
+        :do (let ((i (random-state:random-int *my-random-state* 0 (1- (length *colors*))))
+                  (j (random-state:random-int *my-random-state* 0 (1- (length *colors*)))))
+              (unless (= i j)
+                (rotatef (nth i *colors*) (nth j *colors*))))))
 
 (defun find-color (string)
   (or (gethash string *color-map*)
@@ -322,6 +324,14 @@
                      :short #\L
                      :reduce (constantly 'light)))
 
+(defparameter *option-test-colors*
+  (adopt:make-option 'test-colors
+                     :result-key 'test-colors
+                     :help "Debugging: Display the color values as colored text; use -L and -D to display colors for Light and Dark terminals"
+                     :long "test"
+                     :short #\t
+                     :reduce (constantly 'test-colors)))
+
 (defparameter *ui*
   (adopt:make-interface
    :name "tailf"
@@ -330,7 +340,16 @@
    :help "FILE can be any file glob acceptable to the tail command line utility."
    :contents (list *option-help*
                    *option-dark-terminal*
-                   *option-light-terminal*)))
+                   *option-light-terminal*
+                   *option-test-colors*)))
+
+(defun process-color-options (options)
+  (cond ((eql (gethash 'color options) 'dark)
+         (setf *terminal-color-opt* :dark))
+        ((eql (gethash 'color options) 'light)
+         (setf *terminal-color-opt* :light))
+        (t
+         (setf *terminal-color-opt* :dark))))
 
 (defun toplevel ()
   (sb-ext:disable-debugger)
@@ -339,12 +358,18 @@
       (handler-case
           (cond ((gethash 'help options)
                  (adopt:print-help-and-exit *ui*))
+                ((gethash 'test-colors options)
+                 (process-color-options options)
+                 (let* ((color-list (case *terminal-color-opt*
+                                      (:dark +colors-for-dark-terminal+)
+                                      (:light +colors-for-light-terminal+)))
+                        (sorted-list (sort (copy-list color-list) #'< :key (lambda (c) (parse-integer (subseq c 1 7) :radix 16)))))
+                   (loop :for hex-color :in sorted-list
+                         :do (let ((rgb (parse-hex-color hex-color)))
+                               (format *standard-output* "~$" (ansi-color-start rgb))
+                               (format  *standard-output* "~A~%" hex-color)))
+                   (format *standard-output* "~$" (ansi-color-end))))
                 (t
-                 (cond ((eql (gethash 'color options) 'dark)
-                        (setf *terminal-color-opt* :dark))
-                       ((eql (gethash 'color options) 'light)
-                        (setf *terminal-color-opt* :light))
-                       (t
-                        (setf *terminal-color-opt* :dark)))
+                 (process-color-options options)
                  (run arguments)))
         (user-error (e) (adopt:print-error-and-exit e))))))
