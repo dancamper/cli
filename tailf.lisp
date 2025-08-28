@@ -15,14 +15,14 @@
                                                 "#a9a9a9" ; darkgray
                                                 "#d3d3d3" ; lightgray
                                                 "#ffffff" ; white
-                                                "#2f4f4f" ; darkslategray
+                                                ; "#2f4f4f" ; darkslategray
                                                 "#556b2f" ; darkolivegreen
                                                 "#8b4513" ; saddlebrown
                                                 "#6b8e23" ; olivedrab
                                                 "#a52a2a" ; brown
                                                 "#2e8b57" ; seagreen
-                                                "#7f0000" ; maroon2
-                                                "#191970" ; midnightblue
+                                                ; "#7f0000" ; maroon2
+                                                ; "#191970" ; midnightblue
                                                 "#808000" ; olive
                                                 "#483d8b" ; darkslateblue
                                                 "#b22222" ; firebrick
@@ -37,12 +37,12 @@
                                                 "#bdb76b" ; darkkhaki
                                                 "#cd853f" ; peru
                                                 "#4682b4" ; steelblue
-                                                "#000080" ; navy
+                                                ; "#000080" ; navy
                                                 "#d2691e" ; chocolate
                                                 "#9acd32" ; yellowgreen
                                                 "#20b2aa" ; lightseagreen
                                                 "#cd5c5c" ; indianred
-                                                "#4b0082" ; indigo
+                                                ; "#4b0082" ; indigo
                                                 "#32cd32" ; limegreen
                                                 "#daa520" ; goldenrod
                                                 "#8fbc8f" ; darkseagreen
@@ -60,7 +60,7 @@
                                                 "#6a5acd" ; slateblue
                                                 "#ffff00" ; yellow
                                                 "#c71585" ; mediumvioletred
-                                                "#0000cd" ; mediumblue
+                                                ; "#0000cd" ; mediumblue
                                                 "#40e0d0" ; turquoise
                                                 "#7fff00" ; chartreuse
                                                 "#00ff00" ; lime
@@ -75,7 +75,7 @@
                                                 "#00bfff" ; deepskyblue
                                                 "#f4a460" ; sandybrown
                                                 "#9370db" ; mediumpurple
-                                                "#0000ff" ; blue
+                                                ; "#0000ff" ; blue
                                                 "#a020f0" ; purple3
                                                 "#f08080" ; lightcoral
                                                 "#adff2f" ; greenyellow
@@ -165,12 +165,12 @@
                                                  "#ffa500" ; orange
                                                  "#ffd700" ; gold
                                                  "#6a5acd" ; slateblue
-                                                 "#ffff00" ; yellow
+                                                 ; "#ffff00" ; yellow
                                                  "#c71585" ; mediumvioletred
                                                  "#0000cd" ; mediumblue
                                                  "#deb887" ; burlywood
                                                  "#40e0d0" ; turquoise
-                                                 "#7fff00" ; chartreuse
+                                                 ; "#7fff00" ; chartreuse
                                                  "#00ff00" ; lime
                                                  "#9400d3" ; darkviolet
                                                  "#ba55d3" ; mediumorchid
@@ -187,7 +187,7 @@
                                                  "#0000ff" ; blue
                                                  "#a020f0" ; purple3
                                                  "#f08080" ; lightcoral
-                                                 "#adff2f" ; greenyellow
+                                                 ; "#adff2f" ; greenyellow
                                                  "#ff6347" ; tomato
                                                  "#da70d6" ; orchid
                                                  "#d8bfd8" ; thistle
@@ -196,10 +196,10 @@
                                                  "#ff00ff" ; fuchsia
                                                  "#1e90ff" ; dodgerblue
                                                  "#db7093" ; palevioletred
-                                                 "#f0e68c" ; khaki
+                                                 ; "#f0e68c" ; khaki
                                                  "#fa8072" ; salmon
-                                                 "#eee8aa" ; palegoldenrod
-                                                 "#ffff54" ; laserlemon
+                                                 ; "#eee8aa" ; palegoldenrod
+                                                 ; "#ffff54" ; laserlemon
                                                  "#6495ed" ; cornflower
                                                  "#dda0dd" ; plum
                                                  "#b0e0e6" ; powderblue
@@ -208,9 +208,9 @@
                                                  "#7b68ee" ; mediumslateblue
                                                  "#ffa07a" ; lightsalmon
                                                  "#ee82ee" ; violet
-                                                 "#98fb98" ; palegreen
+                                                 ; "#98fb98" ; palegreen
                                                  "#87cefa" ; lightskyblue
-                                                 "#7fffd4" ; aquamarine
+                                                 ; "#7fffd4" ; aquamarine
                                                  "#ff69b4" ; hotpink
                                                  ) :test #'equalp)
 
