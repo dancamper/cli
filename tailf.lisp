@@ -125,14 +125,14 @@
                                                  "#a52a2a" ; brown
                                                  "#2e8b57" ; seagreen
                                                  "#228b22" ; forestgreen
+                                                 "#800000" ; maroon
                                                  "#191970" ; midnightblue
                                                  "#006400" ; darkgreen
-                                                 "#708090" ; slategray
-                                                 "#8b0000" ; darkred
                                                  "#808000" ; olive
                                                  "#483d8b" ; darkslateblue
                                                  "#b22222" ; firebrick
                                                  "#5f9ea0" ; cadetblue
+                                                 "#778899" ; lightslategray
                                                  "#008000" ; green
                                                  "#3cb371" ; mediumseagreen
                                                  "#bc8f8f" ; rosybrown
@@ -168,9 +168,9 @@
                                                  "#ffff00" ; yellow
                                                  "#c71585" ; mediumvioletred
                                                  "#0000cd" ; mediumblue
+                                                 "#7cfc00" ; lawngreen
                                                  "#deb887" ; burlywood
                                                  "#40e0d0" ; turquoise
-                                                 "#7fff00" ; chartreuse
                                                  "#00ff00" ; lime
                                                  "#9400d3" ; darkviolet
                                                  "#ba55d3" ; mediumorchid
@@ -202,13 +202,13 @@
                                                  "#ffff54" ; laserlemon
                                                  "#6495ed" ; cornflower
                                                  "#dda0dd" ; plum
-                                                 "#b0e0e6" ; powderblue
+                                                 "#90ee90" ; lightgreen
+                                                 "#add8e6" ; lightblue
                                                  "#87ceeb" ; skyblue
                                                  "#ff1493" ; deeppink
                                                  "#7b68ee" ; mediumslateblue
                                                  "#ffa07a" ; lightsalmon
                                                  "#ee82ee" ; violet
-                                                 "#98fb98" ; palegreen
                                                  "#87cefa" ; lightskyblue
                                                  "#7fffd4" ; aquamarine
                                                  "#ff69b4" ; hotpink
@@ -224,6 +224,11 @@
 (define-condition user-error (error) ())
 
 ;;;; Functionality -----------------------------------------------
+
+(defun raw-colors ()
+  (case *terminal-color-opt*
+    (:dark +colors-for-dark-terminal+)
+    (:light +colors-for-light-terminal+)))
 
 (defun parse-hex-color (hex-color)
   ;; assumes that hex-color begins with #\#
@@ -241,25 +246,23 @@
        (* (gamma-color g) 0.7152)
        (* (gamma-color b) 0.0722))))
 
+(defun good-contrast-p (light-luminosity dark-luminosity)
+  (let ((contrast (/ (+ light-luminosity 0.05)
+                     (+ dark-luminosity 0.05))))
+    (>= contrast 3.0)))
+
+(defun include-color-p (r g b)
+  (let ((luminosity (rgb-luminosity r g b)))
+    (case *terminal-color-opt*
+      (:dark (good-contrast-p luminosity (rgb-luminosity 21 25 30)))
+      (:light (good-contrast-p (rgb-luminosity 219 219 219) luminosity)))))
+
 (defun assign-colors ()
   (setf *colors* nil)
-  (flet ((good-contrast-p (light-luminosity dark-luminosity)
-           (let ((contrast (/ (+ light-luminosity 0.05)
-                              (+ dark-luminosity 0.05))))
-             (>= contrast 4.5))))
-    (let ((raw-colors (case *terminal-color-opt*
-                        (:dark +colors-for-dark-terminal+)
-                        (:light +colors-for-light-terminal+)))
-          (black-luminosity (rgb-luminosity 0 0 0))
-          (white-luminosity (rgb-luminosity 255 255 255)))
-      (loop :for hex-color :in raw-colors
-            :do (multiple-value-bind (r g b) (parse-hex-color hex-color)
-                  (let* ((luminosity (rgb-luminosity r g b))
-                         (include-p (case *terminal-color-opt*
-                                      (:dark (good-contrast-p luminosity black-luminosity))
-                                      (:light (good-contrast-p white-luminosity luminosity)))))
-                    (when include-p
-                      (push (list r g b) *colors*)))))))
+  (loop :for hex-color :in (raw-colors)
+        :do (multiple-value-bind (r g b) (parse-hex-color hex-color)
+              (when (include-color-p r g b)
+                (push (list r g b) *colors*))))
   *colors*)
 
 (defun shuffle-colors ()
@@ -379,12 +382,11 @@
                  (adopt:print-help-and-exit *ui*))
                 ((gethash 'test-colors options)
                  (process-color-options options)
-                 (let* ((color-list (case *terminal-color-opt*
-                                      (:dark +colors-for-dark-terminal+)
-                                      (:light +colors-for-light-terminal+)))
-                        (sorted-list (sort (copy-list color-list) #'< :key (lambda (c) (parse-integer (subseq c 1 7) :radix 16)))))
+                 (let ((sorted-list (sort (copy-list (raw-colors)) #'< :key (lambda (c) (parse-integer (subseq c 1 7) :radix 16)))))
                    (loop :for hex-color :in sorted-list
                          :do (multiple-value-bind (r g b) (parse-hex-color hex-color)
+                               (unless (include-color-p r g b)
+                                 (format *standard-output* "; "))
                                (format *standard-output* "~$" (ansi-color-start (list r g b)))
                                (format  *standard-output* "~A~%" hex-color)))
                    (format *standard-output* "~$" (ansi-color-end))))
