@@ -10,209 +10,121 @@
 
 ;;;; Configuration -----------------------------------------------
 
-(a:define-constant +colors-for-dark-terminal+ '("#696969" ; dimgray
-                                                "#808080" ; gray
-                                                "#a9a9a9" ; darkgray
-                                                "#d3d3d3" ; lightgray
-                                                "#ffffff" ; white
-                                                "#2f4f4f" ; darkslategray
-                                                "#556b2f" ; darkolivegreen
-                                                "#8b4513" ; saddlebrown
-                                                "#6b8e23" ; olivedrab
-                                                "#a52a2a" ; brown
-                                                "#2e8b57" ; seagreen
-                                                "#7f0000" ; maroon2
-                                                "#191970" ; midnightblue
-                                                "#808000" ; olive
-                                                "#483d8b" ; darkslateblue
-                                                "#b22222" ; firebrick
-                                                "#5f9ea0" ; cadetblue
-                                                "#778899" ; lightslategray
-                                                "#008000" ; green
-                                                "#3cb371" ; mediumseagreen
-                                                "#bc8f8f" ; rosybrown
-                                                "#663399" ; rebeccapurple
-                                                "#008080" ; teal
-                                                "#b8860b" ; darkgoldenrod
-                                                "#bdb76b" ; darkkhaki
-                                                "#cd853f" ; peru
-                                                "#4682b4" ; steelblue
-                                                "#000080" ; navy
-                                                "#d2691e" ; chocolate
-                                                "#9acd32" ; yellowgreen
-                                                "#20b2aa" ; lightseagreen
-                                                "#cd5c5c" ; indianred
-                                                "#4b0082" ; indigo
-                                                "#32cd32" ; limegreen
-                                                "#daa520" ; goldenrod
-                                                "#8fbc8f" ; darkseagreen
-                                                "#800080" ; purple
-                                                "#b03060" ; maroon3
-                                                "#d2b48c" ; tan
-                                                "#66cdaa" ; mediumaquamarine
-                                                "#9932cc" ; darkorchid
-                                                "#ff0000" ; red
-                                                "#ff4500" ; orangered
-                                                "#00ced1" ; darkturquoise
-                                                "#ff8c00" ; darkorange
-                                                "#ffa500" ; orange
-                                                "#ffd700" ; gold
-                                                "#6a5acd" ; slateblue
-                                                "#ffff00" ; yellow
-                                                "#c71585" ; mediumvioletred
-                                                "#0000cd" ; mediumblue
-                                                "#40e0d0" ; turquoise
-                                                "#7fff00" ; chartreuse
-                                                "#00ff00" ; lime
-                                                "#9400d3" ; darkviolet
-                                                "#ba55d3" ; mediumorchid
-                                                "#00fa9a" ; mediumspringgreen
-                                                "#00ff7f" ; springgreen
-                                                "#4169e1" ; royalblue
-                                                "#e9967a" ; darksalmon
-                                                "#dc143c" ; crimson
-                                                "#00ffff" ; aqua
-                                                "#00bfff" ; deepskyblue
-                                                "#f4a460" ; sandybrown
-                                                "#9370db" ; mediumpurple
-                                                "#0000ff" ; blue
-                                                "#a020f0" ; purple3
-                                                "#f08080" ; lightcoral
-                                                "#adff2f" ; greenyellow
-                                                "#ff6347" ; tomato
-                                                "#da70d6" ; orchid
-                                                "#d8bfd8" ; thistle
-                                                "#b0c4de" ; lightsteelblue
-                                                "#ff7f50" ; coral
-                                                "#ff00ff" ; fuchsia
-                                                "#1e90ff" ; dodgerblue
-                                                "#db7093" ; palevioletred
-                                                "#f0e68c" ; khaki
-                                                "#fa8072" ; salmon
-                                                "#eee8aa" ; palegoldenrod
-                                                "#ffff54" ; laserlemon
-                                                "#6495ed" ; cornflower
-                                                "#dda0dd" ; plum
-                                                "#90ee90" ; lightgreen
-                                                "#add8e6" ; lightblue
-                                                "#87ceeb" ; skyblue
-                                                "#ff1493" ; deeppink
-                                                "#7b68ee" ; mediumslateblue
-                                                "#ffa07a" ; lightsalmon
-                                                "#afeeee" ; paleturquoise
-                                                "#7fffd4" ; aquamarine
-                                                "#ffdead" ; navajowhite
-                                                "#ff69b4" ; hotpink
-                                                "#ffe4c4" ; bisque
-                                                "#e6e6fa" ; lavender
-                                                "#ffe4e1" ; mistyrose
-                                                "#fff8dc" ; cornsilk
-                                                "#f0fff0" ; honeydew
-                                                "#e0ffff" ; lightcyan
-                                                "#ffb6c1" ; lightpink
-                                                ) :test #'equalp)
-
-(a:define-constant +colors-for-light-terminal+ '("#000000" ; black
-                                                 "#696969" ; dimgray
-                                                 "#808080" ; gray
-                                                 "#a9a9a9" ; darkgray
-                                                 "#c0c0c0" ; silver
-                                                 "#2f4f4f" ; darkslategray
-                                                 "#556b2f" ; darkolivegreen
-                                                 "#8b4513" ; saddlebrown
-                                                 "#6b8e23" ; olivedrab
-                                                 "#a0522d" ; sienna
-                                                 "#a52a2a" ; brown
-                                                 "#2e8b57" ; seagreen
-                                                 "#228b22" ; forestgreen
-                                                 "#800000" ; maroon
-                                                 "#191970" ; midnightblue
-                                                 "#006400" ; darkgreen
-                                                 "#808000" ; olive
-                                                 "#483d8b" ; darkslateblue
-                                                 "#b22222" ; firebrick
-                                                 "#5f9ea0" ; cadetblue
-                                                 "#778899" ; lightslategray
-                                                 "#008000" ; green
-                                                 "#3cb371" ; mediumseagreen
-                                                 "#bc8f8f" ; rosybrown
-                                                 "#663399" ; rebeccapurple
-                                                 "#008080" ; teal
-                                                 "#b8860b" ; darkgoldenrod
-                                                 "#bdb76b" ; darkkhaki
-                                                 "#cd853f" ; peru
-                                                 "#4682b4" ; steelblue
-                                                 "#000080" ; navy
-                                                 "#d2691e" ; chocolate
-                                                 "#9acd32" ; yellowgreen
-                                                 "#20b2aa" ; lightseagreen
-                                                 "#cd5c5c" ; indianred
-                                                 "#4b0082" ; indigo
-                                                 "#32cd32" ; limegreen
-                                                 "#daa520" ; goldenrod
-                                                 "#7f007f" ; purple2
-                                                 "#8fbc8f" ; darkseagreen
-                                                 "#8b008b" ; darkmagenta
-                                                 "#b03060" ; maroon3
-                                                 "#d2b48c" ; tan
-                                                 "#48d1cc" ; mediumturquoise
-                                                 "#66cdaa" ; mediumaquamarine
-                                                 "#9932cc" ; darkorchid
-                                                 "#ff0000" ; red
-                                                 "#ff4500" ; orangered
-                                                 "#00ced1" ; darkturquoise
-                                                 "#ff8c00" ; darkorange
-                                                 "#ffa500" ; orange
-                                                 "#ffd700" ; gold
-                                                 "#6a5acd" ; slateblue
-                                                 "#ffff00" ; yellow
-                                                 "#c71585" ; mediumvioletred
-                                                 "#0000cd" ; mediumblue
-                                                 "#7cfc00" ; lawngreen
-                                                 "#deb887" ; burlywood
-                                                 "#40e0d0" ; turquoise
-                                                 "#00ff00" ; lime
-                                                 "#9400d3" ; darkviolet
-                                                 "#ba55d3" ; mediumorchid
-                                                 "#00fa9a" ; mediumspringgreen
-                                                 "#8a2be2" ; blueviolet
-                                                 "#00ff7f" ; springgreen
-                                                 "#4169e1" ; royalblue
-                                                 "#e9967a" ; darksalmon
-                                                 "#dc143c" ; crimson
-                                                 "#00ffff" ; aqua
-                                                 "#00bfff" ; deepskyblue
-                                                 "#f4a460" ; sandybrown
-                                                 "#9370db" ; mediumpurple
-                                                 "#0000ff" ; blue
-                                                 "#a020f0" ; purple3
-                                                 "#f08080" ; lightcoral
-                                                 "#adff2f" ; greenyellow
-                                                 "#ff6347" ; tomato
-                                                 "#da70d6" ; orchid
-                                                 "#d8bfd8" ; thistle
-                                                 "#b0c4de" ; lightsteelblue
-                                                 "#ff7f50" ; coral
-                                                 "#ff00ff" ; fuchsia
-                                                 "#1e90ff" ; dodgerblue
-                                                 "#db7093" ; palevioletred
-                                                 "#f0e68c" ; khaki
-                                                 "#fa8072" ; salmon
-                                                 "#eee8aa" ; palegoldenrod
-                                                 "#ffff54" ; laserlemon
-                                                 "#6495ed" ; cornflower
-                                                 "#dda0dd" ; plum
-                                                 "#90ee90" ; lightgreen
-                                                 "#add8e6" ; lightblue
-                                                 "#87ceeb" ; skyblue
-                                                 "#ff1493" ; deeppink
-                                                 "#7b68ee" ; mediumslateblue
-                                                 "#ffa07a" ; lightsalmon
-                                                 "#ee82ee" ; violet
-                                                 "#87cefa" ; lightskyblue
-                                                 "#7fffd4" ; aquamarine
-                                                 "#ff69b4" ; hotpink
-                                                 ) :test #'equalp)
+(a:define-constant +raw-colors+ '("#696969" ; dimgray
+                                  "#808080" ; gray
+                                  "#a9a9a9" ; darkgray
+                                  "#d3d3d3" ; lightgray
+                                  "#ffffff" ; white
+                                  "#2f4f4f" ; darkslategray
+                                  "#556b2f" ; darkolivegreen
+                                  "#8b4513" ; saddlebrown
+                                  "#6b8e23" ; olivedrab
+                                  "#a52a2a" ; brown
+                                  "#2e8b57" ; seagreen
+                                  "#7f0000" ; maroon2
+                                  "#191970" ; midnightblue
+                                  "#808000" ; olive
+                                  "#483d8b" ; darkslateblue
+                                  "#b22222" ; firebrick
+                                  "#5f9ea0" ; cadetblue
+                                  "#778899" ; lightslategray
+                                  "#008000" ; green
+                                  "#3cb371" ; mediumseagreen
+                                  "#bc8f8f" ; rosybrown
+                                  "#663399" ; rebeccapurple
+                                  "#008080" ; teal
+                                  "#b8860b" ; darkgoldenrod
+                                  "#bdb76b" ; darkkhaki
+                                  "#cd853f" ; peru
+                                  "#4682b4" ; steelblue
+                                  "#000080" ; navy
+                                  "#d2691e" ; chocolate
+                                  "#9acd32" ; yellowgreen
+                                  "#20b2aa" ; lightseagreen
+                                  "#cd5c5c" ; indianred
+                                  "#4b0082" ; indigo
+                                  "#32cd32" ; limegreen
+                                  "#daa520" ; goldenrod
+                                  "#8fbc8f" ; darkseagreen
+                                  "#800080" ; purple
+                                  "#b03060" ; maroon3
+                                  "#d2b48c" ; tan
+                                  "#66cdaa" ; mediumaquamarine
+                                  "#9932cc" ; darkorchid
+                                  "#ff0000" ; red
+                                  "#ff4500" ; orangered
+                                  "#00ced1" ; darkturquoise
+                                  "#ff8c00" ; darkorange
+                                  "#ffa500" ; orange
+                                  "#ffd700" ; gold
+                                  "#6a5acd" ; slateblue
+                                  "#ffff00" ; yellow
+                                  "#c71585" ; mediumvioletred
+                                  "#0000cd" ; mediumblue
+                                  "#40e0d0" ; turquoise
+                                  "#7fff00" ; chartreuse
+                                  "#00ff00" ; lime
+                                  "#9400d3" ; darkviolet
+                                  "#ba55d3" ; mediumorchid
+                                  "#00fa9a" ; mediumspringgreen
+                                  "#00ff7f" ; springgreen
+                                  "#4169e1" ; royalblue
+                                  "#e9967a" ; darksalmon
+                                  "#dc143c" ; crimson
+                                  "#00ffff" ; aqua
+                                  "#00bfff" ; deepskyblue
+                                  "#f4a460" ; sandybrown
+                                  "#9370db" ; mediumpurple
+                                  "#0000ff" ; blue
+                                  "#a020f0" ; purple3
+                                  "#f08080" ; lightcoral
+                                  "#adff2f" ; greenyellow
+                                  "#ff6347" ; tomato
+                                  "#da70d6" ; orchid
+                                  "#d8bfd8" ; thistle
+                                  "#b0c4de" ; lightsteelblue
+                                  "#ff7f50" ; coral
+                                  "#ff00ff" ; fuchsia
+                                  "#1e90ff" ; dodgerblue
+                                  "#db7093" ; palevioletred
+                                  "#f0e68c" ; khaki
+                                  "#fa8072" ; salmon
+                                  "#eee8aa" ; palegoldenrod
+                                  "#ffff54" ; laserlemon
+                                  "#6495ed" ; cornflower
+                                  "#dda0dd" ; plum
+                                  "#90ee90" ; lightgreen
+                                  "#add8e6" ; lightblue
+                                  "#87ceeb" ; skyblue
+                                  "#ff1493" ; deeppink
+                                  "#7b68ee" ; mediumslateblue
+                                  "#ffa07a" ; lightsalmon
+                                  "#afeeee" ; paleturquoise
+                                  "#7fffd4" ; aquamarine
+                                  "#ffdead" ; navajowhite
+                                  "#ff69b4" ; hotpink
+                                  "#ffe4c4" ; bisque
+                                  "#e6e6fa" ; lavender
+                                  "#ffe4e1" ; mistyrose
+                                  "#fff8dc" ; cornsilk
+                                  "#f0fff0" ; honeydew
+                                  "#e0ffff" ; lightcyan
+                                  "#ffb6c1" ; lightpink
+                                  "#000000" ; black
+                                  "#c0c0c0" ; silver
+                                  "#a0522d" ; sienna
+                                  "#228b22" ; forestgreen
+                                  "#800000" ; maroon
+                                  "#006400" ; darkgreen
+                                  "#7f007f" ; purple2
+                                  "#8b008b" ; darkmagenta
+                                  "#48d1cc" ; mediumturquoise
+                                  "#7cfc00" ; lawngreen
+                                  "#deb887" ; burlywood
+                                  "#8a2be2" ; blueviolet
+                                  "#ee82ee" ; violet
+                                  "#87cefa" ; lightskyblue
+                                  ) :test #'equalp)
 
 (defvar *terminal-color-opt* :dark)
 (defvar *colors* nil)
@@ -224,11 +136,6 @@
 (define-condition user-error (error) ())
 
 ;;;; Functionality -----------------------------------------------
-
-(defun raw-colors ()
-  (case *terminal-color-opt*
-    (:dark +colors-for-dark-terminal+)
-    (:light +colors-for-light-terminal+)))
 
 (defun parse-hex-color (hex-color)
   ;; assumes that hex-color begins with #\#
@@ -251,15 +158,18 @@
                      (+ dark-luminosity 0.05))))
     (>= contrast 3.0)))
 
+(defparameter +dark-luminosity+ (rgb-luminosity 21 25 30)) ; not quite black
+(defparameter +light-luminosity+ (rgb-luminosity 219 219 219)) ; not quite white
+
 (defun include-color-p (r g b)
   (let ((luminosity (rgb-luminosity r g b)))
     (case *terminal-color-opt*
-      (:dark (good-contrast-p luminosity (rgb-luminosity 21 25 30)))
-      (:light (good-contrast-p (rgb-luminosity 219 219 219) luminosity)))))
+      (:dark (good-contrast-p luminosity +dark-luminosity+))
+      (:light (good-contrast-p +light-luminosity+ luminosity)))))
 
 (defun assign-colors ()
   (setf *colors* nil)
-  (loop :for hex-color :in (raw-colors)
+  (loop :for hex-color :in +raw-colors+
         :do (multiple-value-bind (r g b) (parse-hex-color hex-color)
               (when (include-color-p r g b)
                 (push (list r g b) *colors*))))
@@ -293,6 +203,19 @@
   (format *standard-output* "~A" (ansi-color-end)))
 
 ;;;; Run ---------------------------------------------------------
+
+(defun show-colors ()
+  (let ((sorted-list (sort (copy-list +raw-colors+) #'< :key (lambda (c) (parse-integer (subseq c 1 7) :radix 16))))
+        (omitted-count 0))
+    (loop :for hex-color :in sorted-list
+          :do (multiple-value-bind (r g b) (parse-hex-color hex-color)
+                (unless (include-color-p r g b)
+                  (format *standard-output* "; ")
+                  (incf omitted-count))
+                (format *standard-output* "~$" (ansi-color-start (list r g b)))
+                (format  *standard-output* "~A~%" hex-color)))
+    (format *standard-output* "~$" (ansi-color-end))
+    (format *standard-output* "~D usable (~D omitted)~%" (- (length +raw-colors+) omitted-count) omitted-count)))
 
 (defun run (paths)
   (when paths
@@ -382,14 +305,7 @@
                  (adopt:print-help-and-exit *ui*))
                 ((gethash 'test-colors options)
                  (process-color-options options)
-                 (let ((sorted-list (sort (copy-list (raw-colors)) #'< :key (lambda (c) (parse-integer (subseq c 1 7) :radix 16)))))
-                   (loop :for hex-color :in sorted-list
-                         :do (multiple-value-bind (r g b) (parse-hex-color hex-color)
-                               (unless (include-color-p r g b)
-                                 (format *standard-output* "; "))
-                               (format *standard-output* "~$" (ansi-color-start (list r g b)))
-                               (format  *standard-output* "~A~%" hex-color)))
-                   (format *standard-output* "~$" (ansi-color-end))))
+                 (show-colors))
                 (t
                  (process-color-options options)
                  (run arguments)))
