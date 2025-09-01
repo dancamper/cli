@@ -1,5 +1,5 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (ql:quickload '(:adopt :alexandria :flexi-streams :random-state :with-user-abort) :silent t))
+  (ql:quickload '(:adopt :alexandria :flexi-streams :with-user-abort) :silent t))
 
 (defpackage :tailf
   (:use :cl)
@@ -15,7 +15,6 @@
 (defvar *terminal-color-opt* :dark)
 (defvar *colors* nil)
 (defvar *color-map* (make-hash-table :test #'equalp))
-(defvar *my-random-state* nil)
 
 ;;;; Errors ------------------------------------------------------
 
@@ -93,8 +92,7 @@
       (let* ((launch-info (uiop:launch-program launch-args :output :stream))
              (raw-input-stream (uiop:process-info-output launch-info))
              (input-stream (flexi-streams:make-flexi-stream raw-input-stream)))
-        (setf (flexi-streams:flexi-stream-element-type input-stream) '(unsigned-byte 8)
-              *my-random-state* (random-state:make-generator :mersenne-twister-32 (get-universal-time)))
+        (setf (flexi-streams:flexi-stream-element-type input-stream) '(unsigned-byte 8))
         (assign-colors)
         (loop :for line = (read-line input-stream nil nil)
               :while line
