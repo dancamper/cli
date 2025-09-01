@@ -146,14 +146,6 @@
                    *option-dark-terminal*
                    *option-light-terminal*)))
 
-(defun process-color-options (options)
-  (cond ((eql (gethash 'color options) 'dark)
-         (setf *terminal-color-opt* :dark))
-        ((eql (gethash 'color options) 'light)
-         (setf *terminal-color-opt* :light))
-        (t
-         (setf *terminal-color-opt* :dark))))
-
 (defun toplevel ()
   (sb-ext:disable-debugger)
   (exit-on-ctrl-c
@@ -162,6 +154,11 @@
           (cond ((gethash 'help options)
                  (adopt:print-help-and-exit *ui*))
                 (t
-                 (process-color-options options)
+                 (cond ((eql (gethash 'color options) 'dark)
+                        (setf *terminal-color-opt* :dark))
+                       ((eql (gethash 'color options) 'light)
+                        (setf *terminal-color-opt* :light))
+                       (t
+                        (setf *terminal-color-opt* :dark)))
                  (run arguments)))
         (user-error (e) (adopt:print-error-and-exit e))))))
