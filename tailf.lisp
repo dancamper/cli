@@ -10,10 +10,16 @@
 
 ;;;; Configuration -----------------------------------------------
 
-(defparameter +color-count+ 200)
+;; The number of colors to examine within the 24-bit RGB space
+(defparameter +color-count+ 2000)
 
+;; Either :dark or :light, indicating the terminal's background color
 (defvar *terminal-color-opt* :dark)
+
+;; The list of RGB colors to use at runtime
 (defvar *colors* nil)
+
+;; Map of file path => RGB color
 (defvar *color-map* (make-hash-table :test #'equalp))
 
 ;;;; Errors ------------------------------------------------------
@@ -23,6 +29,7 @@
 ;;;; Functionality -----------------------------------------------
 
 (defun rgb-to-lab (r g b)
+  "See https://en.wikipedia.org/wiki/CIELAB_color_space."
   (labels ((srgb-to-linear (c)
              (if (<= c 0.04045d0)
                  (/ c 12.92d0)
@@ -61,12 +68,14 @@
       (values L a b))))
 
 (defun delta-e-76 (L1 a1 b1 L2 a2 b2)
+  "Rough comparison of two CIE Lab colors; the larger the result, the more different they are."
   (let ((dL (- L1 L2))
         (da (- a1 a2))
         (db (- b1 b2)))
     (sqrt (+ (* dL dL) (* da da) (* db db)))))
 
 (defun rgb-luminosity (r g b)
+  "Luminosity value of an RGB color."
   (flet ((gamma-color (c)
            (let ((c1 (/ c 255)))
              (if (<= c1 0.03928)
@@ -77,6 +86,8 @@
        (* (gamma-color b) 0.0722))))
 
 (defun good-contrast-p (light-luminosity dark-luminosity)
+  "Determine the contrast of the two luminosity values, return a boolean indicating
+that the contrast is good enough for readability."
   (let ((contrast (/ (+ light-luminosity 0.05)
                      (+ dark-luminosity 0.05))))
     ;; Contrast >= 4.5 is best for accessibility, but we can
@@ -87,12 +98,17 @@
 (defparameter +light-luminosity+ (rgb-luminosity 255 255 255)) ; white
 
 (defun allowed-contrast-p (r g b)
+  "Return a boolean indicating if the given RGB color has good contrast against
+the current background terminal color."
   (let ((luminosity (rgb-luminosity r g b)))
     (case *terminal-color-opt*
       (:dark (good-contrast-p luminosity +dark-luminosity+))
       (:light (good-contrast-p +light-luminosity+ luminosity)))))
 
 (defun create-valid-colors ()
+  "Create a raw color list of evenly-spaced RGB colors throughout its 24-bit
+space, then check each for readable contrast and ensure that the color
+does not resemble any other previously-generated color."
   (let ((colors nil)
         (labs nil))
     (flet ((distinct-lab-p (L1 a1 b1 L2 a2 b2)
@@ -110,6 +126,7 @@
     colors))
 
 (defun hash-djb2 (string)
+  "Simple hash of a string."
   (let ((ex (expt 2 64)))
     (reduce (lambda (hash c)
               (mod (+ (* 33 hash) c) ex))
@@ -118,6 +135,7 @@
             :key #'char-code)))
 
 (defun find-color (string)
+  "Given a pathname as a string, return an appropriate (possibly cached) color for it."
   (or (gethash string *color-map*)
       (setf (gethash string *color-map*) (nth (mod (hash-djb2 string) (length *colors*)) *colors*))))
 
