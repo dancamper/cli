@@ -22,6 +22,50 @@
 
 ;;;; Functionality -----------------------------------------------
 
+(defun rgb-to-lab (r g b)
+  (labels ((srgb-to-linear (c)
+             (if (<= c 0.04045d0)
+                 (/ c 12.92d0)
+                 (expt (/ (+ c 0.055d0) 1.055d0) 2.4d0)))
+           (f (v)
+             (let* ((eps (expt (/ 6.0d0 29.0d0) 3)) ; ≈ 0.008856
+                    (k (/ 1.0d0 3.0d0))
+                    (a (expt (/ 29.0d0 6.0d0) 2)) ; ≈ 7.787^2 but exact form
+                    (b (/ 4.0d0 29.0d0)))
+               (if (> v eps)
+                   (expt v k)
+                   (+ (* a v) b)))))
+    (let* ((r-n (/ r 255.0d0))
+           (g-n (/ g 255.0d0))
+           (b-n (/ b 255.0d0))
+           ;; 1) gamma-expand to linear light
+           (rl (srgb-to-linear r-n))
+           (gl (srgb-to-linear g-n))
+           (bl (srgb-to-linear b-n))
+           ;; 2) linear RGB -> XYZ (D65, 2°) in 0..1
+           (x (+ (* 0.4124564d0 rl) (* 0.3575761d0 gl) (* 0.1804375d0 bl)))
+           (y (+ (* 0.2126729d0 rl) (* 0.7151522d0 gl) (* 0.0721750d0 bl)))
+           (z (+ (* 0.0193339d0 rl) (* 0.1191920d0 gl) (* 0.9503041d0 bl)))
+           ;; 3) scale to 0..100 to match reference white constants
+           (X (* 100.0d0 x))
+           (Y (* 100.0d0 y))
+           (Z (* 100.0d0 z))
+           ;; D65 reference white (2°)
+           (Xn 95.047d0) (Yn 100.000d0) (Zn 108.883d0)
+           (fx (f (/ X Xn)))
+           (fy (f (/ Y Yn)))
+           (fz (f (/ Z Zn)))
+           (L (- (* 116.0d0 fy) 16.0d0))
+           (a (* 500.0d0 (- fx fy)))
+           (b (* 200.0d0 (- fy fz))))
+      (values L a b))))
+
+(defun delta-e-76 (L1 a1 b1 L2 a2 b2)
+  (let ((dL (- L1 L2))
+        (da (- a1 a2))
+        (db (- b1 b2)))
+    (sqrt (+ (* dL dL) (* da da) (* db db)))))
+
 (defun rgb-luminosity (r g b)
   (flet ((gamma-color (c)
            (let ((c1 (/ c 255)))
@@ -35,26 +79,35 @@
 (defun good-contrast-p (light-luminosity dark-luminosity)
   (let ((contrast (/ (+ light-luminosity 0.05)
                      (+ dark-luminosity 0.05))))
+    ;; Contrast >= 4.5 is best for accessibility, but we can
+    ;; use something lower for readability
     (>= contrast 3.0)))
 
 (defparameter +dark-luminosity+ (rgb-luminosity 0 0 0)) ; black
 (defparameter +light-luminosity+ (rgb-luminosity 255 255 255)) ; white
 
-(defun allow-color-p (r g b)
+(defun allowed-contrast-p (r g b)
   (let ((luminosity (rgb-luminosity r g b)))
     (case *terminal-color-opt*
       (:dark (good-contrast-p luminosity +dark-luminosity+))
       (:light (good-contrast-p +light-luminosity+ luminosity)))))
 
-(defun assign-colors ()
-  (setf *colors* nil)
-  (loop :for rgb :from 0 :to (expt 256 3) :by (floor (/ (expt 256 3) +color-count+))
-        :do (let ((r (ldb (byte 8 16) rgb))
-                  (g (ldb (byte 8 8) rgb))
-                  (b (ldb (byte 8 0) rgb)))
-              (when (allow-color-p r g b)
-                (push (list r g b) *colors*))))
-  *colors*)
+(defun create-valid-colors ()
+  (let ((colors nil)
+        (labs nil))
+    (flet ((distinct-lab-p (L1 a1 b1 L2 a2 b2)
+             (>= (delta-e-76 L1 a1 b1 L2 a2 b2) 3.0)))
+      (loop :for rgb :from 0 :to (expt 256 3) :by (floor (/ (expt 256 3) +color-count+))
+            :do (let ((r (ldb (byte 8 16) rgb))
+                      (g (ldb (byte 8 8) rgb))
+                      (b (ldb (byte 8 0) rgb)))
+                  (when (allowed-contrast-p r g b)
+                    (multiple-value-bind (L1 a1 b1) (rgb-to-lab r g b)
+                      (when (or (not labs)
+                                (every #'(lambda (l) (distinct-lab-p L1 a1 b1 (first l) (second l) (third l))) labs))
+                        (push (list r g b) colors)
+                        (push (list L1 a1 b1) labs)))))))
+    colors))
 
 (defun hash-djb2 (string)
   (let ((ex (expt 2 64)))
@@ -92,8 +145,8 @@
       (let* ((launch-info (uiop:launch-program launch-args :output :stream))
              (raw-input-stream (uiop:process-info-output launch-info))
              (input-stream (flexi-streams:make-flexi-stream raw-input-stream)))
-        (setf (flexi-streams:flexi-stream-element-type input-stream) '(unsigned-byte 8))
-        (assign-colors)
+        (setf (flexi-streams:flexi-stream-element-type input-stream) '(unsigned-byte 8)
+              *colors* (create-valid-colors))
         (loop :for line = (read-line input-stream nil nil)
               :while line
               :do (progn
