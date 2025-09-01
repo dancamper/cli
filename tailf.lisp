@@ -49,10 +49,10 @@
                      (+ dark-luminosity 0.05))))
     (>= contrast 3.0)))
 
-(defparameter +dark-luminosity+ (rgb-luminosity 21 25 30)) ; not quite black
-(defparameter +light-luminosity+ (rgb-luminosity 219 219 219)) ; not quite white
+(defparameter +dark-luminosity+ (rgb-luminosity 0 0 0)) ; black
+(defparameter +light-luminosity+ (rgb-luminosity 255 255 255)) ; white
 
-(defun include-color-p (r g b)
+(defun allow-color-p (r g b)
   (let ((luminosity (rgb-luminosity r g b)))
     (case *terminal-color-opt*
       (:dark (good-contrast-p luminosity +dark-luminosity+))
@@ -62,16 +62,9 @@
   (setf *colors* nil)
   (loop :for rgb-color :in (raw-colors)
         :do (multiple-value-bind (r g b) (parse-rgb-color rgb-color)
-              (when (include-color-p r g b)
+              (when (allow-color-p r g b)
                 (push (list r g b) *colors*))))
   *colors*)
-
-(defun shuffle-colors ()
-  (loop :for x :to (length *colors*)
-        :do (let ((i (random-state:random-int *my-random-state* 0 (1- (length *colors*))))
-                  (j (random-state:random-int *my-random-state* 0 (1- (length *colors*)))))
-              (unless (= i j)
-                (rotatef (nth i *colors*) (nth j *colors*))))))
 
 (defun hash-djb2 (string)
   (let ((ex (expt 2 64)))
@@ -83,7 +76,7 @@
 
 (defun find-color (string)
   (or (gethash string *color-map*)
-      (setf (gethash string *color-map*) (pop *colors*))))
+      (setf (gethash string *color-map*) (nth (mod (hash-djb2 string) (length *colors*)) *colors*))))
 
 (defun ansi-color-end ()
   (format nil "~C[0m" #\Escape))
@@ -112,7 +105,6 @@
         (setf (flexi-streams:flexi-stream-element-type input-stream) '(unsigned-byte 8)
               *my-random-state* (random-state:make-generator :mersenne-twister-32 (get-universal-time)))
         (assign-colors)
-        (shuffle-colors)
         (loop :for line = (read-line input-stream nil nil)
               :while line
               :do (progn
