@@ -25,15 +25,14 @@
 
 (defun raw-colors ()
   (let ((colors nil))
-    (loop :for c :from 0 :to (expt 255 3) :by (/ (expt 255 3) +color-count+)
-          :do (push (format nil "#~6,'0X" (round c)) colors))
+    (loop :for c :from 0 :to (expt 256 3) :by (/ (expt 256 3) +color-count+)
+          :do (push (round c) colors))
     colors))
 
-(defun parse-hex-color (hex-color)
-  ;; assumes that hex-color begins with #\#
-  (values (parse-integer (subseq hex-color 1 3) :radix 16)
-          (parse-integer (subseq hex-color 3 5) :radix 16)
-          (parse-integer (subseq hex-color 5 7) :radix 16)))
+(defun parse-rgb-color (rgb)
+  (values (ldb (byte 8 16) rgb)
+          (ldb (byte 8 8) rgb)
+          (ldb (byte 8 0) rgb)))
 
 (defun rgb-luminosity (r g b)
   (flet ((gamma-color (c)
@@ -61,8 +60,8 @@
 
 (defun assign-colors ()
   (setf *colors* nil)
-  (loop :for hex-color :in (raw-colors)
-        :do (multiple-value-bind (r g b) (parse-hex-color hex-color)
+  (loop :for rgb-color :in (raw-colors)
+        :do (multiple-value-bind (r g b) (parse-rgb-color rgb-color)
               (when (include-color-p r g b)
                 (push (list r g b) *colors*))))
   *colors*)
@@ -73,6 +72,14 @@
                   (j (random-state:random-int *my-random-state* 0 (1- (length *colors*)))))
               (unless (= i j)
                 (rotatef (nth i *colors*) (nth j *colors*))))))
+
+(defun hash-djb2 (string)
+  (let ((ex (expt 2 64)))
+    (reduce (lambda (hash c)
+              (mod (+ (* 33 hash) c) ex))
+            string
+            :initial-value 5381
+            :key #'char-code)))
 
 (defun find-color (string)
   (or (gethash string *color-map*)
@@ -95,19 +102,6 @@
   (format *standard-output* "~A" (ansi-color-end)))
 
 ;;;; Run ---------------------------------------------------------
-
-(defun show-colors ()
-  (let ((sorted-list (sort (copy-list (raw-colors)) #'< :key (lambda (c) (parse-integer (subseq c 1 7) :radix 16))))
-        (omitted-count 0))
-    (loop :for hex-color :in sorted-list
-          :do (multiple-value-bind (r g b) (parse-hex-color hex-color)
-                (unless (include-color-p r g b)
-                  (format *standard-output* "; ")
-                  (incf omitted-count))
-                (format *standard-output* "~A" (ansi-color-start (list r g b)))
-                (format  *standard-output* "~A~%" hex-color)))
-    (format *standard-output* "~A" (ansi-color-end))
-    (format *standard-output* "~D usable (~D omitted)~%" (- (length sorted-list) omitted-count) omitted-count)))
 
 (defun run (paths)
   (when paths
@@ -161,14 +155,6 @@
                      :short #\L
                      :reduce (constantly 'light)))
 
-(defparameter *option-test-colors*
-  (adopt:make-option 'test-colors
-                     :result-key 'test-colors
-                     :help "Debugging: Display the color values as colored text; use -L and -D to display colors for Light and Dark terminals"
-                     :long "test"
-                     :short #\t
-                     :reduce (constantly 'test-colors)))
-
 (defparameter *ui*
   (adopt:make-interface
    :name "tailf"
@@ -177,8 +163,7 @@
    :help "FILE can be any file glob acceptable to the tail command line utility."
    :contents (list *option-help*
                    *option-dark-terminal*
-                   *option-light-terminal*
-                   *option-test-colors*)))
+                   *option-light-terminal*)))
 
 (defun process-color-options (options)
   (cond ((eql (gethash 'color options) 'dark)
@@ -195,9 +180,6 @@
       (handler-case
           (cond ((gethash 'help options)
                  (adopt:print-help-and-exit *ui*))
-                ((gethash 'test-colors options)
-                 (process-color-options options)
-                 (show-colors))
                 (t
                  (process-color-options options)
                  (run arguments)))
