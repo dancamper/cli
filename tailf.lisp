@@ -23,17 +23,6 @@
 
 ;;;; Functionality -----------------------------------------------
 
-(defun raw-colors ()
-  (let ((colors nil))
-    (loop :for c :from 0 :to (expt 256 3) :by (/ (expt 256 3) +color-count+)
-          :do (push (round c) colors))
-    colors))
-
-(defun parse-rgb-color (rgb)
-  (values (ldb (byte 8 16) rgb)
-          (ldb (byte 8 8) rgb)
-          (ldb (byte 8 0) rgb)))
-
 (defun rgb-luminosity (r g b)
   (flet ((gamma-color (c)
            (let ((c1 (/ c 255)))
@@ -60,8 +49,10 @@
 
 (defun assign-colors ()
   (setf *colors* nil)
-  (loop :for rgb-color :in (raw-colors)
-        :do (multiple-value-bind (r g b) (parse-rgb-color rgb-color)
+  (loop :for rgb :from 0 :to (expt 256 3) :by (floor (/ (expt 256 3) +color-count+))
+        :do (let ((r (ldb (byte 8 16) rgb))
+                  (g (ldb (byte 8 8) rgb))
+                  (b (ldb (byte 8 0) rgb)))
               (when (allow-color-p r g b)
                 (push (list r g b) *colors*))))
   *colors*)
