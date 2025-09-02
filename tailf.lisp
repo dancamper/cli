@@ -28,8 +28,9 @@
 
 ;;;; Functionality -----------------------------------------------
 
-(defun rgb-to-lab (r g b)
+(defun rgb-to-cie-lab (r g b)
   "See https://en.wikipedia.org/wiki/CIELAB_color_space."
+  (declare (unsigned-byte r g b))
   (labels ((srgb-to-linear (c)
              (if (<= c 0.04045d0)
                  (/ c 12.92d0)
@@ -69,12 +70,14 @@
 
 (defun delta-e-76 (L1 a1 b1 L2 a2 b2)
   "Rough comparison of two CIE Lab colors; the larger the result, the more different they are."
+  (declare (float L1 a1 b1 L2 a2 b2))
   (let ((dL (- L1 L2))
         (da (- a1 a2))
         (db (- b1 b2)))
     (sqrt (+ (* dL dL) (* da da) (* db db)))))
 
 (defun rgb-luminosity (r g b)
+  (declare (unsigned-byte r g b))
   "Luminosity value of an RGB color."
   (flet ((gamma-color (c)
            (let ((c1 (/ c 255)))
@@ -88,6 +91,7 @@
 (defun good-contrast-p (light-luminosity dark-luminosity)
   "Determine the contrast of the two luminosity values, return a boolean indicating
 that the contrast is good enough for readability."
+  (declare (float light-luminosity dark-luminosity))
   (let ((contrast (/ (+ light-luminosity 0.05)
                      (+ dark-luminosity 0.05))))
     ;; Contrast >= 4.5 is best for accessibility, but we can
@@ -112,32 +116,32 @@ does not resemble any other previously-generated color."
   (let ((colors nil)
         (labs nil))
     (flet ((distinct-lab-p (L1 a1 b1 L2 a2 b2)
-             (>= (delta-e-76 L1 a1 b1 L2 a2 b2) 3.0)))
+             (>= (delta-e-76 L1 a1 b1 L2 a2 b2) 4.0)))
       (loop :for rgb :from 0 :to (expt 256 3) :by (floor (/ (expt 256 3) +color-count+))
             :do (let ((r (ldb (byte 8 16) rgb))
                       (g (ldb (byte 8 8) rgb))
                       (b (ldb (byte 8 0) rgb)))
                   (when (allowed-contrast-p r g b)
-                    (multiple-value-bind (L1 a1 b1) (rgb-to-lab r g b)
+                    (multiple-value-bind (L1 a1 b1) (rgb-to-cie-lab r g b)
                       (when (or (not labs)
                                 (every #'(lambda (l) (distinct-lab-p L1 a1 b1 (first l) (second l) (third l))) labs))
                         (push (list r g b) colors)
                         (push (list L1 a1 b1) labs)))))))
     colors))
 
-(defun hash-djb2 (string)
+(defun hash-djb2 (pathname-string)
   "Simple hash of a string."
-  (let ((ex (expt 2 64)))
-    (reduce (lambda (hash c)
-              (mod (+ (* 33 hash) c) ex))
-            string
-            :initial-value 5381
-            :key #'char-code)))
+  (declare (string pathname-string))
+  (reduce (lambda (hash c) (mod (+ (* 33 hash) c) (expt 2 64)))
+          pathname-string
+          :initial-value 5381
+          :key #'char-code))
 
-(defun find-color (string)
+(defun find-color (pathname-string)
   "Given a pathname as a string, return an appropriate (possibly cached) color for it."
-  (or (gethash string *color-map*)
-      (setf (gethash string *color-map*) (nth (mod (hash-djb2 string) (length *colors*)) *colors*))))
+  (declare (string pathname-string))
+  (or (gethash pathname-string *color-map*)
+      (setf (gethash pathname-string *color-map*) (nth (mod (hash-djb2 pathname-string) (length *colors*)) *colors*))))
 
 (defun ansi-color-end ()
   (format nil "~C[0m" #\Escape))
@@ -148,9 +152,9 @@ does not resemble any other previously-generated color."
         (format nil "~C[38;2;~D;~D;~Dm" #\Escape r g b))
       (ansi-color-end)))
 
-(defun start-colorizing (string)
-  (when *colors*
-    (format *standard-output* "~A" (ansi-color-start (find-color string)))))
+(defun start-colorizing (pathname-string)
+  (declare (string pathname-string))
+  (format *standard-output* "~A" (ansi-color-start (find-color pathname-string))))
 
 (defun stop-colorizing ()
   (format *standard-output* "~A" (ansi-color-end)))
@@ -223,7 +227,14 @@ does not resemble any other previously-generated color."
     (multiple-value-bind (arguments options) (adopt:parse-options-or-exit *ui*)
       (handler-case
           (cond ((gethash 'help options)
-                 (adopt:print-help-and-exit *ui*))
+                 (adopt:print-help *ui*)
+                 (format *standard-output* "~%")
+                 (let ((*terminal-color-opt* :dark))
+                   (format *standard-output* "~D colors available for dark terminals~%" (length (create-valid-colors))))
+                 (let ((*terminal-color-opt* :light))
+                   (format *standard-output* "~D colors available for light terminals~%" (length (create-valid-colors))))
+                 (format *standard-output* "~%")
+                 (adopt:exit))
                 (t
                  (cond ((eql (gethash 'color options) 'dark)
                         (setf *terminal-color-opt* :dark))
