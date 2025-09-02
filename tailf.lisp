@@ -116,7 +116,7 @@ does not resemble any other previously-generated color."
   (let ((colors nil)
         (labs nil))
     (flet ((distinct-lab-p (L1 a1 b1 L2 a2 b2)
-             (>= (delta-e-76 L1 a1 b1 L2 a2 b2) 4.0)))
+             (>= (delta-e-76 L1 a1 b1 L2 a2 b2) 5.0)))
       (loop :for rgb :from 0 :to (expt 256 3) :by (floor (/ (expt 256 3) +color-count+))
             :do (let ((r (ldb (byte 8 16) rgb))
                       (g (ldb (byte 8 8) rgb))
