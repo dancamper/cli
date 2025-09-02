@@ -10,8 +10,11 @@
 
 ;;;; Configuration -----------------------------------------------
 
-;; The number of colors to examine within the 24-bit RGB space
-(defparameter +color-count+ 2000)
+;; The default number of colors to examine within the 24-bit RGB space
+(defparameter +default-color-count+ 2000)
+
+;; The actual number of colors to examine (could be overridden at the command line)
+(defvar *color-count* +default-color-count+)
 
 ;; Either :dark or :light, indicating the terminal's background color
 (defvar *terminal-color-opt* :dark)
@@ -117,7 +120,7 @@ does not resemble any other previously-generated color."
         (labs nil))
     (flet ((distinct-lab-p (L1 a1 b1 L2 a2 b2)
              (>= (delta-e-76 L1 a1 b1 L2 a2 b2) 5.0)))
-      (loop :for rgb :from 0 :to (expt 256 3) :by (floor (/ (expt 256 3) +color-count+))
+      (loop :for rgb :from 0 :to (expt 256 3) :by (floor (/ (expt 256 3) *color-count*))
             :do (let ((r (ldb (byte 8 16) rgb))
                       (g (ldb (byte 8 8) rgb))
                       (b (ldb (byte 8 0) rgb)))
@@ -195,6 +198,15 @@ does not resemble any other previously-generated color."
                      :short #\h
                      :reduce (constantly t)))
 
+(defparameter *option-num-colors*
+  (adopt:make-option 'num-colors
+                     :parameter "NUM-COLORS"
+                     :help (format nil "Number of raw RGB colors to start with (default ~D)" +default-color-count+)
+                     :initial-value +default-color-count+
+                     :key #'parse-integer
+                     :short #\n
+                     :reduce #'adopt:last))
+
 (defparameter *option-dark-terminal*
   (adopt:make-option 'dark-terminal
                      :result-key 'color
@@ -218,6 +230,7 @@ does not resemble any other previously-generated color."
    :usage "[OPTIONS] FILE [FILE]+"
    :help "FILE can be any file glob acceptable to the tail command line utility."
    :contents (list *option-help*
+                   *option-num-colors*
                    *option-dark-terminal*
                    *option-light-terminal*)))
 
@@ -226,21 +239,25 @@ does not resemble any other previously-generated color."
   (exit-on-ctrl-c
     (multiple-value-bind (arguments options) (adopt:parse-options-or-exit *ui*)
       (handler-case
-          (cond ((gethash 'help options)
-                 (adopt:print-help *ui*)
-                 (format *standard-output* "~%")
-                 (let ((*terminal-color-opt* :dark))
-                   (format *standard-output* "~D colors available for dark terminals~%" (length (create-valid-colors))))
-                 (let ((*terminal-color-opt* :light))
-                   (format *standard-output* "~D colors available for light terminals~%" (length (create-valid-colors))))
-                 (format *standard-output* "~%")
-                 (adopt:exit))
-                (t
-                 (cond ((eql (gethash 'color options) 'dark)
-                        (setf *terminal-color-opt* :dark))
-                       ((eql (gethash 'color options) 'light)
-                        (setf *terminal-color-opt* :light))
-                       (t
-                        (setf *terminal-color-opt* :dark)))
-                 (run arguments)))
+          (progn
+            (when (gethash 'num-colors options)
+              (setf *color-count* (gethash 'num-colors options)))
+            (cond ((gethash 'help options)
+                   (adopt:print-help *ui*)
+                   (format *standard-output* "~%")
+                   (format *standard-output* "~D raw colors will be examined~%" *color-count*)
+                   (let ((*terminal-color-opt* :dark))
+                     (format *standard-output* "~D colors available for dark terminals~%" (length (create-valid-colors))))
+                   (let ((*terminal-color-opt* :light))
+                     (format *standard-output* "~D colors available for light terminals~%" (length (create-valid-colors))))
+                   (format *standard-output* "~%")
+                   (adopt:exit))
+                  (t
+                   (cond ((eql (gethash 'color options) 'dark)
+                          (setf *terminal-color-opt* :dark))
+                         ((eql (gethash 'color options) 'light)
+                          (setf *terminal-color-opt* :light))
+                         (t
+                          (setf *terminal-color-opt* :dark)))
+                   (run arguments))))
         (user-error (e) (adopt:print-error-and-exit e))))))
