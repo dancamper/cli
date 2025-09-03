@@ -100,7 +100,7 @@ that the contrast is good enough for readability."
                      (+ dark-luminosity 0.05))))
     ;; Contrast >= 4.5 is best for accessibility, but we can
     ;; use something lower for readability
-    (>= contrast 3.0)))
+    (>= contrast 4.0)))
 
 (defparameter +dark-luminosity+ (rgb-luminosity 0 0 0)) ; black
 (defparameter +light-luminosity+ (rgb-luminosity 255 255 255)) ; white
