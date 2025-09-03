@@ -212,9 +212,10 @@ does not resemble any other previously-generated color."
   (adopt:make-option 'dark-terminal
                      :result-key 'color
                      :help "Use font colors suitable for a dark terminal background (the default)"
+                     :initial-value :dark
                      :long "dark"
                      :short #\D
-                     :reduce (constantly 'dark)))
+                     :reduce (constantly :dark)))
 
 (defparameter *option-light-terminal*
   (adopt:make-option 'light-terminal
@@ -222,7 +223,7 @@ does not resemble any other previously-generated color."
                      :help "Use font colors suitable for a light terminal background"
                      :long "light"
                      :short #\L
-                     :reduce (constantly 'light)))
+                     :reduce (constantly :light)))
 
 (defparameter *ui*
   (adopt:make-interface :name "tailf"
@@ -259,11 +260,6 @@ does not resemble any other previously-generated color."
             (cond ((gethash 'help options)
                    (display-help-and-exit))
                   (t
-                   (cond ((eql (gethash 'color options) 'dark)
-                          (setf *terminal-color-opt* :dark))
-                         ((eql (gethash 'color options) 'light)
-                          (setf *terminal-color-opt* :light))
-                         (t
-                          (setf *terminal-color-opt* :dark)))
+                   (setf *terminal-color-opt* (gethash 'color options))
                    (run arguments))))
         (user-error (e) (adopt:print-error-and-exit e))))))
