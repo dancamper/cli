@@ -33,6 +33,7 @@
 
 (defun rgb-to-cie-lab (r g b)
   "See https://en.wikipedia.org/wiki/CIELAB_color_space."
+  ;; This function was first written by an LLM and then modified
   (declare (unsigned-byte r g b))
   (labels ((srgb-to-linear (c)
              (if (<= c 0.04045d0)
@@ -46,13 +47,13 @@
                (if (> v eps)
                    (expt v k)
                    (+ (* a v) b)))))
-    (let* ((r-n (/ r 255.0d0))
-           (g-n (/ g 255.0d0))
-           (b-n (/ b 255.0d0))
+    (let* ((rn (/ r 255.0d0))
+           (gn (/ g 255.0d0))
+           (bn (/ b 255.0d0))
            ;; 1) gamma-expand to linear light
-           (rl (srgb-to-linear r-n))
-           (gl (srgb-to-linear g-n))
-           (bl (srgb-to-linear b-n))
+           (rl (srgb-to-linear rn))
+           (gl (srgb-to-linear gn))
+           (bl (srgb-to-linear bn))
            ;; 2) linear RGB -> XYZ (D65, 2°) in 0..1
            (x (+ (* 0.4124564d0 rl) (* 0.3575761d0 gl) (* 0.1804375d0 bl)))
            (y (+ (* 0.2126729d0 rl) (* 0.7151522d0 gl) (* 0.0721750d0 bl)))
@@ -127,7 +128,7 @@ does not resemble any other previously-generated color."
                   (when (allowed-contrast-p r g b)
                     (multiple-value-bind (L1 a1 b1) (rgb-to-cie-lab r g b)
                       (when (or (not labs)
-                                (every #'(lambda (l) (distinct-lab-p L1 a1 b1 (first l) (second l) (third l))) labs))
+                                (every #'(lambda (l) (apply #'distinct-lab-p L1 a1 b1 l)) labs))
                         (push (list r g b) colors)
                         (push (list L1 a1 b1) labs)))))))
     colors))
@@ -191,7 +192,7 @@ does not resemble any other previously-generated color."
          (sb-ext:exit :code 130)))))
 
 (defparameter *option-help*
-  (adopt:make-option 'help
+  (adopt:make-option'help
                      :result-key 'help
                      :help "Display help and exit"
                      :long "help"
@@ -224,34 +225,39 @@ does not resemble any other previously-generated color."
                      :reduce (constantly 'light)))
 
 (defparameter *ui*
-  (adopt:make-interface
-   :name "tailf"
-   :summary "Wraps the tail command line utility, specifically when tailing multiple files. Colorize the output from each file differently."
-   :usage "[OPTIONS] FILE [FILE]+"
-   :help "FILE can be any file glob acceptable to the tail command line utility."
-   :contents (list *option-help*
-                   *option-num-colors*
-                   *option-dark-terminal*
-                   *option-light-terminal*)))
+  (adopt:make-interface :name "tailf"
+                        :summary "Wraps the tail command line utility, specifically when tailing multiple files. Colorize the output from each file differently."
+                        :usage "[OPTIONS] FILE [FILE]+"
+                        :help "FILE can be any file globs acceptable to the tail command line utility."
+                        :contents (list *option-help*
+                                        *option-num-colors*
+                                        *option-dark-terminal*
+                                        *option-light-terminal*)))
+
+(defun display-help-and-exit ()
+  "Display application help and some stats about our RGB color palette."
+  (adopt:print-help *ui*)
+  ;; Show some stats about the color palette
+  (format *standard-output* "~%")
+  (format *standard-output* "~D raw RGB colors will be examined~%" *color-count*)
+  (let ((*terminal-color-opt* :dark))
+    (format *standard-output* "~D colors available after filtering for dark terminals~%" (length (create-valid-colors))))
+  (let ((*terminal-color-opt* :light))
+    (format *standard-output* "~D colors available after filtering for light terminals~%" (length (create-valid-colors))))
+  (format *standard-output* "~%")
+  ;; Exit without error
+  (adopt:exit))
 
 (defun toplevel ()
+  "Entry point for the application."
   (sb-ext:disable-debugger)
   (exit-on-ctrl-c
     (multiple-value-bind (arguments options) (adopt:parse-options-or-exit *ui*)
       (handler-case
           (progn
-            (when (gethash 'num-colors options)
-              (setf *color-count* (gethash 'num-colors options)))
+            (setf *color-count* (gethash 'num-colors options))
             (cond ((gethash 'help options)
-                   (adopt:print-help *ui*)
-                   (format *standard-output* "~%")
-                   (format *standard-output* "~D raw colors will be examined~%" *color-count*)
-                   (let ((*terminal-color-opt* :dark))
-                     (format *standard-output* "~D colors available for dark terminals~%" (length (create-valid-colors))))
-                   (let ((*terminal-color-opt* :light))
-                     (format *standard-output* "~D colors available for light terminals~%" (length (create-valid-colors))))
-                   (format *standard-output* "~%")
-                   (adopt:exit))
+                   (display-help-and-exit))
                   (t
                    (cond ((eql (gethash 'color options) 'dark)
                           (setf *terminal-color-opt* :dark))
