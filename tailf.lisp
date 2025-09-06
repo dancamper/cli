@@ -10,20 +10,15 @@
 
 ;;;; Configuration -----------------------------------------------
 
-;; The default number of colors to examine within the 24-bit RGB space
-(defparameter +default-color-count+ 2000)
+(defparameter +default-color-count+ 2000 "The default number of colors to examine within the 24-bit RGB space")
 
-;; The actual number of colors to examine (could be overridden at the command line)
-(defvar *color-count* +default-color-count+)
+(defvar *color-count* +default-color-count+ "The actual number of colors to examine (could be overridden at the command line)")
 
-;; Either :dark or :light, indicating the terminal's background color
-(defvar *terminal-color-opt* :dark)
+(defvar *terminal-color-opt* :dark "Either :dark or :light, indicating the terminal's background color")
 
-;; The list of RGB colors to use at runtime
-(defvar *colors* nil)
+(defvar *colors* nil "The list of RGB colors to use at runtime")
 
-;; Map of file path => RGB color
-(defvar *color-map* (make-hash-table :test #'equalp))
+(defvar *color-map* (make-hash-table :test #'equalp) "Map of file path => RGB color")
 
 ;;;; Errors ------------------------------------------------------
 
@@ -102,8 +97,8 @@ that the contrast is good enough for readability."
     ;; use something lower for readability
     (>= contrast 4.0)))
 
-(defparameter +dark-luminosity+ (rgb-luminosity 0 0 0)) ; black
-(defparameter +light-luminosity+ (rgb-luminosity 255 255 255)) ; white
+(defparameter +dark-luminosity+ (rgb-luminosity 0 0 0) "RGB luminosity of black")
+(defparameter +light-luminosity+ (rgb-luminosity 255 255 255) "RGB luminosity of white")
 
 (defun allowed-contrast-p (r g b)
   "Return a boolean indicating if the given RGB color has good contrast against
@@ -136,32 +131,41 @@ does not resemble any other previously-generated color."
 (defun hash-djb2 (pathname-string)
   "Simple hash of a string."
   (declare (string pathname-string))
-  (reduce (lambda (hash c) (mod (+ (* 33 hash) c) (expt 2 64)))
+  (reduce #'(lambda (hash c) (mod (+ (* 33 hash) c) (expt 2 64)))
           pathname-string
           :initial-value 5381
           :key #'char-code))
 
-(defun find-color (pathname-string)
-  "Given a pathname as a string, return an appropriate (possibly cached) color for it."
-  (declare (string pathname-string))
-  (or (gethash pathname-string *color-map*)
-      (setf (gethash pathname-string *color-map*) (nth (mod (hash-djb2 pathname-string) (length *colors*)) *colors*))))
-
-(defun ansi-color-end ()
+(defun end-colorizing-escape-code ()
+  "Return the escape code for ending text colorization, as a string."
   (format nil "~C[0m" #\Escape))
 
-(defun ansi-color-start (color)
-  (if color
-      (destructuring-bind (r g b) color
+(defun start-colorizing-escape-code (rgb-color)
+  "Return the escape code for colorizing text, as a string.
+The COLOR argument should be either a list of the three RGB
+colors or nil, indicating that text colorization should stop."
+  (if rgb-color
+      (destructuring-bind (r g b) rgb-color
         (format nil "~C[38;2;~D;~D;~Dm" #\Escape r g b))
-      (ansi-color-end)))
+      (end-colorizing-escape-code)))
+
+(defun lookup-colorizing-escape-code-for-path (pathname-string)
+  "Given a pathname as a string, return an appropriate (possibly cached)
+colorizing escape code for it."
+  (declare (string pathname-string))
+  (or (gethash pathname-string *color-map*)
+      (setf (gethash pathname-string *color-map*) (start-colorizing-escape-code (nth (mod (hash-djb2 pathname-string) (length *colors*)) *colors*)))))
 
 (defun start-colorizing (pathname-string)
+  "Look up the color associated with the argument and send the
+appropriate escape code to standard output."
   (declare (string pathname-string))
-  (format *standard-output* "~A" (ansi-color-start (find-color pathname-string))))
+  (format *standard-output* "~A" (lookup-colorizing-escape-code-for-path pathname-string)))
 
 (defun stop-colorizing ()
-  (format *standard-output* "~A" (ansi-color-end)))
+  "Send the escape code necessary to stop text colorization to
+standard output."
+  (format *standard-output* "~A" (end-colorizing-escape-code)))
 
 ;;;; Run ---------------------------------------------------------
 
