@@ -11,13 +11,12 @@
 ;;;; Configuration -----------------------------------------------
 
 (defparameter +default-color-count+ 2000 "The default number of colors to examine within the 24-bit RGB space")
+(defparameter +min-contrast+ 5.0 "The minimum constrast level to allow when comparing light and dark colors")
+(defparameter +min-cie-lab-comparison-score+ 6.0 "The minimum score comparing two RGB colors (higher value means 'more different')")
 
 (defvar *color-count* +default-color-count+ "The actual number of colors to examine (could be overridden at the command line)")
-
 (defvar *terminal-color-opt* :dark "Either :dark or :light, indicating the terminal's background color")
-
 (defvar *colors* nil "The list of RGB colors to use at runtime")
-
 (defvar *color-map* (make-hash-table :test #'equalp) "Map of file path => RGB color")
 
 ;;;; Errors ------------------------------------------------------
@@ -95,7 +94,7 @@ that the contrast is good enough for readability."
                      (+ dark-luminosity 0.05))))
     ;; Contrast >= 4.5 is best for accessibility, but we can
     ;; use something lower for readability
-    (>= contrast 4.0)))
+    (>= contrast +min-contrast+)))
 
 (defparameter +dark-luminosity+ (rgb-luminosity 0 0 0) "RGB luminosity of black")
 (defparameter +light-luminosity+ (rgb-luminosity 255 255 255) "RGB luminosity of white")
@@ -115,7 +114,7 @@ does not resemble any other previously-generated color."
   (let ((colors nil)
         (labs nil))
     (flet ((distinct-lab-p (L1 a1 b1 L2 a2 b2)
-             (>= (delta-e-76 L1 a1 b1 L2 a2 b2) 5.0)))
+             (>= (delta-e-76 L1 a1 b1 L2 a2 b2) +min-cie-lab-comparison-score+)))
       (loop :for rgb :from 0 :to (expt 256 3) :by (floor (/ (expt 256 3) *color-count*))
             :do (let ((r (ldb (byte 8 16) rgb))
                       (g (ldb (byte 8 8) rgb))
