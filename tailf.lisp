@@ -10,7 +10,7 @@
 
 ;;;; Configuration -----------------------------------------------
 
-(defparameter +default-color-count+ 9999 "The default number of colors to examine within the 24-bit RGB space")
+(defparameter +default-color-count+ 9999)
 (defparameter +min-contrast+ 5.0 "The minimum constrast level to allow when comparing light and dark colors")
 (defparameter +min-cie-lab-comparison-score+ 6.0 "The minimum score comparing two RGB colors (higher value means 'more different')")
 
@@ -34,10 +34,10 @@
                  (/ c 12.92d0)
                  (expt (/ (+ c 0.055d0) 1.055d0) 2.4d0)))
            (f (v)
-             (let* ((eps (expt (/ 6.0d0 29.0d0) 3)) ; ≈ 0.008856
-                    (k (/ 1.0d0 3.0d0))
-                    (a (expt (/ 29.0d0 6.0d0) 2)) ; ≈ 7.787^2 but exact form
-                    (b (/ 4.0d0 29.0d0)))
+             (let ((eps (expt (/ 6.0d0 29.0d0) 3)) ; ≈ 0.008856
+                   (k (/ 1.0d0 3.0d0))
+                   (a (expt (/ 29.0d0 6.0d0) 2)) ; ≈ 7.787^2 but exact form
+                   (b (/ 4.0d0 29.0d0)))
                (if (> v eps)
                    (expt v k)
                    (+ (* a v) b)))))
