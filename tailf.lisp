@@ -10,7 +10,7 @@
 
 ;;;; Configuration -----------------------------------------------
 
-(defparameter +default-color-count+ 2000 "The default number of colors to examine within the 24-bit RGB space")
+(defparameter +default-color-count+ 9999 "The default number of colors to examine within the 24-bit RGB space")
 (defparameter +min-contrast+ 5.0 "The minimum constrast level to allow when comparing light and dark colors")
 (defparameter +min-cie-lab-comparison-score+ 6.0 "The minimum score comparing two RGB colors (higher value means 'more different')")
 
