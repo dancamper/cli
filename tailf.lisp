@@ -25,6 +25,14 @@
 
 ;;;; Functionality -----------------------------------------------
 
+(defun dedup-strings (string-list)
+  "Deduplicate the contents of the list, preserving order."
+  (let ((seen (make-hash-table :test 'equalp)))
+    (remove-if-not (lambda (s)
+                     (unless (gethash s seen)
+                       (setf (gethash s seen) t)))
+                   string-list)))
+
 (defun rgb-to-cie-lab (r g b)
   "See https://en.wikipedia.org/wiki/CIELAB_color_space."
   ;; This function was first written by an LLM and then modified
@@ -170,7 +178,7 @@ standard output."
 
 (defun run (paths)
   (when paths
-    (let ((launch-args (append (list "tail" "-F") (if (listp paths) paths (list paths)))))
+    (let ((launch-args (append (list "tail" "-F") (dedup-strings (if (listp paths) paths (list paths))))))
       (let* ((launch-info (uiop:launch-program launch-args :output :stream))
              (raw-input-stream (uiop:process-info-output launch-info))
              (input-stream (flexi-streams:make-flexi-stream raw-input-stream)))
