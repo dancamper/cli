@@ -86,6 +86,10 @@
                 (setf s (concatenate 'string s (format nil "~A" e)))))
     s))
 
+(defun identifier-char-p (c)
+  "Return t if C is an identifier constituent (letter, digit, underscore, or $)."
+  (and c (or (alphanumericp c) (char= c #\_))))
+
 ;;; -------------------------------
 
 (defstruct trie-node
@@ -109,7 +113,7 @@
       (setf names (mapcar #'reverse function-name-list)
             min-length (apply #'min (mapcar #'length function-name-list))
             max-length (apply #'max (mapcar #'length function-name-list))
-            scan-buffer (make-string max-length :element-type 'character :initial-element #\Space)
+            scan-buffer (make-string (1+ max-length) :element-type 'character :initial-element #\Space)
             arg-buffer (make-array 1024 :element-type 'character :fill-pointer 0 :adjustable t)
             skip-map (make-hash-table :test #'eql :size (* 2 max-length (length names)))
             trie (make-trie-node))
@@ -135,7 +139,7 @@
 
 (defmethod reset ((obj searcher))
   (with-slots (scan-buffer max-length) obj
-   (setf scan-buffer (make-string max-length :element-type 'character :initial-element #\Space)) ))
+   (setf scan-buffer (make-string (1+ max-length) :element-type 'character :initial-element #\Space)) ))
 
 (defmethod skip-length ((obj searcher) (c character))
   (with-slots (min-length skip-map) obj
@@ -289,7 +293,7 @@ the last character; str is destructively modified."
                          (let ((name-node trie)
                                (name-length 0))
                            (loop :named name-scan
-                                 :for i :from 0 :upto (1- max-length)
+                                 :for i :from 0 :below max-length
                                  :do (let ((ch (if *case-insensitive-p* (char-upcase (char scan-buffer i)) (char scan-buffer i))))
                                        (setf name-node (gethash ch (trie-node-next name-node)))
                                        (unless name-node
@@ -297,6 +301,7 @@ the last character; str is destructively modified."
                                        (when (trie-node-wordp name-node)
                                          (setf name-length (1+ i)))))
                            (when (and (plusp name-length)
+                                      (not (identifier-char-p (char scan-buffer name-length)))
                                       (skip-whitespace-and-char str #\())
                              (let* ((line (line-num str))
                                     (args (extract-arguments obj str)))
