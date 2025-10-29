@@ -188,10 +188,12 @@ standard output."
               :while line
               :do (progn
                     (when (and (> (length line) 8)
-                               (string= line "==> " :end1 4)
-                               (string= line " <==" :start1 (- (length line) 4) :end1 (length line)))
+                               (a:starts-with-subseq "==> " line)
+                               (a:ends-with-subseq " <==" line))
                       (start-colorizing line))
-                    (write-line line *standard-output*)))))))
+                    (write-line line *standard-output*)
+                    (force-output *standard-output*)))
+        (uiop:terminate-process launch-info)))))
 
 ;;;; User Interface ----------------------------------------------
 
