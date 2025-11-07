@@ -25,12 +25,21 @@
 
 ;;;; Functionality -----------------------------------------------
 
+(defun hash-djb2 (pathname-string)
+  "Simple hash of a string."
+  (declare (string pathname-string))
+  (reduce #'(lambda (hash c) (mod (+ (* 33 hash) c) (expt 2 64)))
+          pathname-string
+          :initial-value 5381
+          :key #'char-code))
+
 (defun dedup-strings (string-list)
   "Deduplicate the contents of the list, preserving order."
-  (let ((seen (make-hash-table :test 'equalp)))
+  (let ((seen (make-hash-table)))
     (remove-if-not (lambda (s)
-                     (unless (gethash s seen)
-                       (setf (gethash s seen) t)))
+                     (let ((h (hash-djb2 s)))
+                       (unless (gethash h seen)
+                         (setf (gethash h seen) t))))
                    string-list)))
 
 (defun rgb-to-cie-lab (r g b)
@@ -42,10 +51,10 @@
                  (/ c 12.92d0)
                  (expt (/ (+ c 0.055d0) 1.055d0) 2.4d0)))
            (f (v)
-             (let ((eps (expt (/ 6.0d0 29.0d0) 3)) ; ≈ 0.008856
-                   (k (/ 1.0d0 3.0d0))
-                   (a (expt (/ 29.0d0 6.0d0) 2)) ; ≈ 7.787^2 but exact form
-                   (b (/ 4.0d0 29.0d0)))
+             (let* ((eps (expt (/ 6.0d0 29.0d0) 3)) ; ≈ 0.008856
+                    (k (/ 1.0d0 3.0d0))
+                    (a (* k (expt (/ 29.0d0 6.0d0) 2))) ; ≈ 7.787^2 but exact form
+                    (b (/ 4.0d0 29.0d0)))
                (if (> v eps)
                    (expt v k)
                    (+ (* a v) b)))))
@@ -134,14 +143,6 @@ does not resemble any other previously-generated color."
                         (push (list r g b) colors)
                         (push (list L1 a1 b1) labs)))))))
     colors))
-
-(defun hash-djb2 (pathname-string)
-  "Simple hash of a string."
-  (declare (string pathname-string))
-  (reduce #'(lambda (hash c) (mod (+ (* 33 hash) c) (expt 2 64)))
-          pathname-string
-          :initial-value 5381
-          :key #'char-code))
 
 (defun end-colorizing-escape-code ()
   "Return the escape code for ending text colorization, as a string."
@@ -242,7 +243,7 @@ standard output."
   (adopt:make-interface :name "tailf"
                         :summary "Wraps the tail command line utility, specifically when tailing multiple files. Colorize the output from each file differently."
                         :usage "[OPTIONS] FILE [FILE]+"
-                        :help "FILE can be any file globs acceptable to the tail command line utility."
+                        :help "FILE can be any pathname acceptable to the tail command line utility."
                         :contents (list *option-help*
                                         *option-num-colors*
                                         *option-dark-terminal*
