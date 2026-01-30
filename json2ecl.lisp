@@ -211,7 +211,7 @@ replacement characters down to a single occurrence."
       (as-ecl-type (reduce-base-type value-type))
       (case value-type
         (boolean "BOOLEAN")
-        (null-value "STRING")
+        (null-value *ecl-string-type*)
         (string "STRING")
         (default-string *ecl-string-type*)
         (pos-number "UNSIGNED")
@@ -228,7 +228,7 @@ as an ECL comment describing those types."
                       (member (as-ecl-type value-type) '(*ecl-string-type* "STRING") :test #'string=))))
     (labels ((desc (v)
                (case v
-                 (null-value "null")
+                 (null-value "nullable")
                  (default-string "string")
                  (pos-number "unsigned integer")
                  (neg-number "signed integer")
